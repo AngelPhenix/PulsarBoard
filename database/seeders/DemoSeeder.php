@@ -49,6 +49,8 @@ class DemoSeeder extends Seeder
             'name' => 'Refonte Backend & Sécurité API',
             'owner_id' => $recruiter->id,
         ]);
+        $boardBackend->users()->attach($recruiter->id);
+
 
         $t1 = Task::create(['board_id' => $boardBackend->id, 'name' => 'Corriger la faille CSRF sur les requêtes AJAX',]);
         $t1->labels()->attach($labelUrgent->id);
@@ -79,6 +81,7 @@ class DemoSeeder extends Seeder
             'name' => 'Migration Tailwind & Mode Sombre',
             'owner_id' => $recruiter->id,
         ]);
+        $boardFrontend->users()->attach($recruiter->id);
 
         $t8 = Task::create(['board_id' => $boardFrontend->id, 'name' => 'Résoudre le bug d’affichage du Kanban sur mobile']);
         $t8->labels()->attach($labelUrgent->id);
@@ -106,6 +109,7 @@ class DemoSeeder extends Seeder
             'name' => 'Pipeline CI/CD & Déploiement Render',
             'owner_id' => $recruiter->id,
         ]);
+        $boardDevops->users()->attach($recruiter->id);
 
         $t14 = Task::create(['board_id' => $boardDevops->id, 'name' => 'Automatiser le lancement du DemoSeeder au build']);
         $t14->labels()->attach($labelUrgent->id);
