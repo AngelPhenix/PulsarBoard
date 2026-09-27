@@ -42,7 +42,7 @@ Test the application directly here: **[https://quicktodolaravelproject-8lll.onre
 ## 📋 Todo / Roadmap
 
 - [x] **Render Streamline:** Make Seeders and Migrations to automatically repopulate the database for easier single-use for recruiters.
-- [ ] **Dashboard Overview:** Display all user-owned and shared boards as clean, interactive cards on the home screen once logged in.
+- [x] **Dashboard Overview:** Display all user-owned and shared boards as clean, interactive cards on the home screen once logged in.
 - [ ] **Streamlined Task Creation:** Enable direct task creation right from the board setup view.
 - [ ] **Smart Focus:** Automatically focus the input field when writing a task for a smoother user experience.
 - [ ] **Tag Visibility Toggle:** Provide an option to show or hide tags dynamically on the cards.

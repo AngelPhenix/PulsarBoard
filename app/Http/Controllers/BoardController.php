@@ -35,9 +35,12 @@ class BoardController extends Controller
 
     public function welcome()
     {
-        $boards = Auth::user()->boards;
+        // On récupère l'utilisateur proprement, et on utilise ?-> pour éviter tout plantage si null
+        $user = Auth::user();
+        $boards = $user ? $user->boards()->get() : collect();
 
         return view('welcome', [
+            'boards' => $boards,
             'boardList' => $boards
         ]);
     }
