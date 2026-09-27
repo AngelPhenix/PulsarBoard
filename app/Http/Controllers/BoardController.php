@@ -35,7 +35,11 @@ class BoardController extends Controller
 
     public function welcome()
     {
-        return view('welcome');
+        $boards = Auth::user()->boards;
+
+        return view('welcome', [
+            'boardList' => $boards
+        ]);
     }
 
     public function create()
