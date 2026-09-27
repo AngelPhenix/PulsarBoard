@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\Label;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DemoSeeder extends Seeder
 {
