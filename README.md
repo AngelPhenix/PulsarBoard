@@ -23,57 +23,30 @@ Test the application directly here: **[https://quicktodolaravelproject-8lll.onre
 
 ## ✨ Main Features
 
-- **Authentication System:** Secure user registration, login, and account management.
-- **Tag-based Search:** Instantly filter job offers by technologies or keywords (e.g., `PHP`, `Laravel`, etc.).
-- **External Redirection:** Each job post includes a direct link leading to the recruiter's official website to apply.
-- **Job Posting:** Dedicated space to add and manage job offers.
+- **Authentication System:** Secure user registration, login, and personalized session management.
+- **Kanban Task Management:** Create, update, check off completed tasks, and delete items seamlessly.
+- **Custom Color-Coded Tags:** Build and assign your own personalized tags to categorize tasks visually.
+- **Board Collaboration:** Invite registered users to your boards via their email address so they can participate, add tasks, and manage tags collaboratively.
 
 ---
 
 ## 🛠️ Tech Stack
 
 - **Backend:** PHP / Laravel
-- **Database:** MySQL
+- **Database:** SQLite
+- **Frontend / Assets:** Vite & Tailwind CSS
 - **Hosting:** Render
 
 ---
 
 ## 📋 Todo / Roadmap
 
-- [x] **Visual Identity:** Replace the default site icon and logo.
-- [x] **Page Titles:** Update the web app tab title.
-- [ ] **Additional Pages:** Handle or clean up secondary pages ("Jobs", "Careers", "Salaries", and "Companies").
-- [ ] **Tag Management:** Restrict tag creation to a predefined list to prevent typos or duplicates on the main page.
-
----
-
-## 🚀 You want to tweak things yourself and make it your own? (Local Development)
-
-If you want to run this application locally for testing or development purposes, follow these steps:
-
-### Prerequisites
-Make sure you have the following tools installed on your machine:
-* [Laravel Herd](https://herd.laravel.com/) (recommended local environment for PHP/Laravel)
-* [Composer](https://getcomposer.org/) (for PHP dependency management)
-* [Node.js & npm](https://nodejs.org/) (required for frontend asset compilation)
-
-### Installation Steps
-
-You can set up the project either automatically using the provided script or manually.
-I made a script to automate the process but you're free to open the .bat file and enter the commands yourself.
-
-#### Automatic Setup (Recommended for Windows)
-At the root of your project, simply run the setup script:
-```bash
-setup.bat
-```
-
-After everything's executed and installed, you can open Laravel Herd, "Add a Site", select the folder and it should be ready for use.
-Don't forget to get into the folder and run the command 
-```bash
-npm run dev
-```
-Whenever you want to start coding/modifying files.
+- [ ] **Render Streamline:** Make Seeders and Migrations to automatically repopulate the database for easier single-use for recruiters.
+- [ ] **Dashboard Overview:** Display all user-owned and shared boards as clean, interactive cards on the home screen once logged in.
+- [ ] **Streamlined Task Creation:** Enable direct task creation right from the board setup view.
+- [ ] **Smart Focus:** Automatically focus the input field when writing a task for a smoother user experience.
+- [ ] **Tag Visibility Toggle:** Provide an option to show or hide tags dynamically on the cards.
+- [ ] **Advanced Filtering:** Implement filtering options directly on boards using specific tags defined by the board administrator.
 
 ---
 
