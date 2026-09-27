@@ -24,7 +24,7 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.2.2/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <title>Kaban</title>
+    <title>PulsarBoard</title>
 </head>
 <body class="min-h-dvh">
     <div id="main-content" class="flex min-h-dvh w-full">
