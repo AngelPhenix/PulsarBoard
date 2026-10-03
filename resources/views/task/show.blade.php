@@ -50,7 +50,7 @@
 
                 <div class="ui-field flex-1">
                     <label class="ui-label" for="name">New task</label>
-                    <input class="ui-input" type="text" id="name" name="name" placeholder="e.g. Draft the landing copy" autocomplete="off" />
+                    <input class="ui-input" type="text" id="name" name="name" placeholder="e.g. Draft the landing copy" autocomplete="off" autofocus/>
                 </div>
 
                 <button class="ui-btn ui-btn-neon sm:shrink-0" type="submit">
