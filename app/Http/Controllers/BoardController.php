@@ -53,19 +53,36 @@ class BoardController extends Controller
     }
 
     // When board is created, add the owner to the board_user pivot table
-    public function store(Request $request)
+public function store(Request $request)
     {
         $attributes = $request->validate([
-            'name' => ['required', 'max:80']
+            'name' => ['required', 'max:80'],
+            'tasks' => ['nullable', 'array'],
+            'tasks.*' => ['nullable', 'string', 'max:255'],
         ]);
 
         // Adding the ID of the current logged in user as "owner_id"
-        $attributes['owner_id'] = Auth::id();
+        $boardAttributes = [
+            'name' => $attributes['name'],
+            'owner_id' => Auth::id(),
+        ];
         
-        $board = Board::create($attributes);
+        $board = Board::create($boardAttributes);
 
         // Attaching the board_id to the user_id in the pivot table "board_user"
         $board->users()->attach(Auth::id());
+
+        // Si des tâches initiales ont été renseignées, on les crée et on les rattache au board
+        if (!empty($attributes['tasks'])) {
+            foreach ($attributes['tasks'] as $taskName) {
+                if (!empty(trim($taskName))) {
+                    $board->tasks()->create([
+                        'name' => trim($taskName),
+                        'is_completed' => false,
+                    ]);
+                }
+            }
+        }
 
         return redirect('/boards');
     }
