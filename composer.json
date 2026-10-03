@@ -53,19 +53,17 @@
         }
     },
     "config": {
-        "optimize-autoloader": true,
-        "preferred-install": "dist",
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "php-http/discovery": true
-        },
-        "policy": {
-            "advisories": {
-                "block": false
-            }
-        }
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true,
+    "allow-plugins": {
+        "pestphp/pest-plugin": true,
+        "php-http/discovery": true
     },
+    "audit": {
+        "block-insecure": false
+    }
+},
     "minimum-stability": "stable",
     "prefer-stable": true
 }
