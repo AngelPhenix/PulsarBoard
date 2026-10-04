@@ -29,10 +29,18 @@ class BoardController extends Controller
         $boards = Auth::user()->boards;
         $friends = Auth::user()->friends;
 
+        // Récupère tous les tags uniques de l'utilisateur (hors null/vides)
+        $existingTags = Auth::user()->boards()
+            ->whereNotNull('tag')
+            ->where('tag', '!=', '')
+            ->distinct()
+            ->pluck('tag');
+
         return view('board.options', [
             'board' => $board,
             'boardList' => $boards,
-            'friends' => $friends
+            'friends' => $friends,
+            'existingTags' => $existingTags, // On passe les tags à la vue
         ]);
     }
 

@@ -35,24 +35,42 @@
         @endcan
 
         @can('delete', $board)
-            <div class="ui-card p-5">
+            <div class="ui-card p-5" x-data="{ tag: @js($board->tag) }">
                 <div class="ui-h2">Board Tag</div>
                 <div class="ui-caption mt-1">Assign or update a category tag for this board.</div>
 
-                <form method="post" action="{{ route('board.update-tag', ['board' => $board->id]) }}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+                <form method="post" action="{{ route('board.update-tag', ['board' => $board->id]) }}" class="mt-4 space-y-3">
                     @csrf
                     @method('PATCH')
 
-                    <div class="ui-field flex-1">
+                    <div class="ui-field">
                         <label class="ui-label" for="tag">Tag / Category</label>
-                        <input class="ui-input" type="text" id="tag" name="tag" value="{{ old('tag', $board->tag) }}" placeholder="e.g. Work, Personal..." autocomplete="off" />
+                        <input class="ui-input" type="text" id="tag" name="tag" x-model="tag" placeholder="e.g. Work, Personal..." autocomplete="off" />
                         <x-form-error fieldname="tag" />
                     </div>
 
-                    <button class="ui-btn ui-btn-neon sm:shrink-0" type="submit">
-                        <i class="fa-solid fa-tag"></i>
-                        <span>Update tag</span>
-                    </button>
+                    <!-- Suggestions de tags existants -->
+                    @if(isset($existingTags) && $existingTags->isNotEmpty())
+                        <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                            <span class="text-xs text-gray-400 mr-1 font-medium">Suggestions :</span>
+                            @foreach ($existingTags as $existingTag)
+                                <button 
+                                    type="button" 
+                                    @click="tag = @js($existingTag)"
+                                    class="text-xs px-2.5 py-1 rounded-lg bg-white/5 hover:bg-indigo-500/20 text-gray-300 hover:text-indigo-300 border border-white/10 transition-colors"
+                                >
+                                    {{ $existingTag }}
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div class="pt-2">
+                        <button class="ui-btn ui-btn-neon w-full sm:w-auto" type="submit">
+                            <i class="fa-solid fa-tag"></i>
+                            <span>Update tag</span>
+                        </button>
+                    </div>
                 </form>
             </div>
         @endcan
