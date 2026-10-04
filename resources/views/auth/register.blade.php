@@ -25,12 +25,6 @@
                     <x-form-error fieldname='password' />
                 </div>
 
-                <div class="ui-field">
-                    <label class="ui-label" for="icon">Icon</label>
-                    <input class="ui-input py-2" type="file" id="icon" name="icon" />
-                    <x-form-error fieldname='icon' />
-                </div>
-
                 <button class="ui-btn ui-btn-neon w-full" type="submit">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Create</span>
