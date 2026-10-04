@@ -45,8 +45,9 @@ Test the application directly here: **[https://quicktodolaravelproject-8lll.onre
 - [x] **Dashboard Overview:** Display all user-owned and shared boards as clean, interactive cards on the home screen once logged in.
 - [x] **Streamlined Task Creation:** Enable direct task creation right from the board setup view.
 - [x] **Smart Focus:** Automatically focus the input field when writing a task for a smoother user experience.
-- [ ] **Tag Visibility Toggle:** Provide an option to show or hide tags dynamically on the cards.
-- [ ] **Advanced Filtering:** Implement filtering options directly on boards using specific tags defined by the board administrator.
+- [x] **Tag Visibility Toggle:** Provide an option to show or hide tags dynamically on the cards.
+- [x] **Advanced Filtering:** Implement filtering options directly on boards using specific tags defined by the board administrator.
+- [] UX Polishing: Fine-tune alignments, spacing, and dynamic view toggles across components for a fluid, professional user experience.
 
 ---
 
