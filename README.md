@@ -47,7 +47,6 @@ Test the application directly here: **[https://quicktodolaravelproject-8lll.onre
 - [x] **Smart Focus:** Automatically focus the input field when writing a task for a smoother user experience.
 - [x] **Tag Visibility Toggle:** Provide an option to show or hide tags dynamically on the cards.
 - [x] **Advanced Filtering:** Implement filtering options directly on boards using specific tags defined by the board administrator.
-- [ ] **UX Polishing:** Fine-tune alignments, spacing, and dynamic view toggles across components for a fluid, professional user experience.
 
 ---
 
