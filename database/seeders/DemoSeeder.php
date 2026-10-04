@@ -48,6 +48,8 @@ class DemoSeeder extends Seeder
         $boardBackend = Board::create([
             'name' => 'Refonte Backend & Sécurité API',
             'owner_id' => $recruiter->id,
+            'tag' => 'Travail',
+            'show_task_tags' => true,
         ]);
         $boardBackend->users()->attach($recruiter->id);
 
@@ -80,6 +82,8 @@ class DemoSeeder extends Seeder
         $boardFrontend = Board::create([
             'name' => 'Migration Tailwind & Mode Sombre',
             'owner_id' => $recruiter->id,
+            'tag' => 'Travail',
+            'show_task_tags' => false,
         ]);
         $boardFrontend->users()->attach($recruiter->id);
 
@@ -108,6 +112,7 @@ class DemoSeeder extends Seeder
         $boardDevops = Board::create([
             'name' => 'Pipeline CI/CD & Déploiement Render',
             'owner_id' => $recruiter->id,
+            'show_task_tags' => true,
         ]);
         $boardDevops->users()->attach($recruiter->id);
 
