@@ -13,6 +13,7 @@ class Board extends Model
 
     protected $fillable = [
         'name',
+        'tag',
         'owner_id'
     ];
 

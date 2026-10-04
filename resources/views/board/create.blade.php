@@ -16,6 +16,13 @@
                     <x-form-error fieldname='name'/>
                 </div>
 
+                <!-- Tag de la board -->
+                <div class="ui-field">
+                    <label class="ui-label" for="tag">Tag / Category (optional)</label>
+                    <input class="ui-input" type="text" name="tag" id="tag" placeholder="e.g. Work, Personal, Hobby..." autocomplete="off" value="{{ old('tag') }}" />
+                    <x-form-error fieldname='tag'/>
+                </div>
+
                 <!-- Tâches initiales -->
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">

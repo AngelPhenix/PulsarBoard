@@ -34,6 +34,29 @@
             </div>
         @endcan
 
+        @can('delete', $board)
+            <div class="ui-card p-5">
+                <div class="ui-h2">Board Tag</div>
+                <div class="ui-caption mt-1">Assign or update a category tag for this board.</div>
+
+                <form method="post" action="{{ route('board.update-tag', ['board' => $board->id]) }}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+                    @csrf
+                    @method('PATCH')
+
+                    <div class="ui-field flex-1">
+                        <label class="ui-label" for="tag">Tag / Category</label>
+                        <input class="ui-input" type="text" id="tag" name="tag" value="{{ old('tag', $board->tag) }}" placeholder="e.g. Work, Personal..." autocomplete="off" />
+                        <x-form-error fieldname="tag" />
+                    </div>
+
+                    <button class="ui-btn ui-btn-neon sm:shrink-0" type="submit">
+                        <i class="fa-solid fa-tag"></i>
+                        <span>Update tag</span>
+                    </button>
+                </form>
+            </div>
+        @endcan
+
         @can('addFriend', $board)
             <div class="ui-card p-5">
                 <div class="ui-h2">Collaborators</div>

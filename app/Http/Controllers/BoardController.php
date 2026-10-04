@@ -15,9 +15,12 @@ class BoardController extends Controller
     {
         $boards = Auth::user()->boards;
 
+        $groupedBoards = $boards->groupBy('tag');
+
         return view('board.view', [
             'boards' => $boards,
-            'boardList' => $boards
+            'boardList' => $boards,
+            'groupedBoards' => $groupedBoards
         ]);
     }
 
@@ -35,14 +38,13 @@ class BoardController extends Controller
 
     public function welcome()
     {
-        // On récupère l'utilisateur proprement, et on utilise ?-> pour éviter tout plantage si null
-        $user = Auth::user();
-        $boards = $user ? $user->boards()->get() : collect();
+        // Si l'utilisateur est connecté, on le redirige directement vers sa page de boards
+        if (Auth::check()) {
+            return redirect()->route('board.view'); // Assure-toi que c'est bien le nom de ta route pour les boards
+        }
 
-        return view('welcome', [
-            'boards' => $boards,
-            'boardList' => $boards
-        ]);
+        // Pour un visiteur non connecté, on affiche la page de bienvenue simple (sans besoin de récupérer les boards)
+        return view('welcome');
     }
 
     public function create()
@@ -57,6 +59,7 @@ public function store(Request $request)
     {
         $attributes = $request->validate([
             'name' => ['required', 'max:80'],
+            'tag' => ['nullable', 'string', 'max:50'],
             'tasks' => ['nullable', 'array'],
             'tasks.*' => ['nullable', 'string', 'max:255'],
         ]);
@@ -64,6 +67,7 @@ public function store(Request $request)
         // Adding the ID of the current logged in user as "owner_id"
         $boardAttributes = [
             'name' => $attributes['name'],
+            'tag' => !empty($attributes['tag']) ? trim($attributes['tag']) : null,
             'owner_id' => Auth::id(),
         ];
         
@@ -120,6 +124,21 @@ public function store(Request $request)
         ]);
 
         return redirect()->back()->with(['board_renamed' => 'Board renamed successfully.']);
+    }
+
+    public function updateTag(Request $request, Board $board)
+    {
+        // Validation du tag
+        $attributes = $request->validate([
+            'tag' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        // Mise à jour de la board (on nettoie les espaces ou on met à null si vide)
+        $board->update([
+            'tag' => !empty($attributes['tag']) ? trim($attributes['tag']) : null,
+        ]);
+
+        return back()->with('board_renamed', 'Board tag updated successfully!'); // Tu peux réutiliser le message ou en créer un autre de session
     }
 
     public function destroy(Board $board)

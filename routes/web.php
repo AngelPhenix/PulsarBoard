@@ -15,7 +15,7 @@ Route::patch('/task_completed/{task}', [TaskController::class, 'update'])->middl
 Route::get('/board/{board}', [TaskController::class, 'show'])->middleware(['auth', 'can:view,board']);
 
 Route::get('/', [BoardController::class, 'welcome']);
-Route::get('/boards', [BoardController::class, 'index'])->middleware('auth');
+Route::get('/boards', [BoardController::class, 'index'])->middleware('auth')->name('board.view');
 Route::get('/board_create', [BoardController::class, 'create'])->middleware('auth');
 Route::post('/board', [BoardController::class, 'store'])->middleware('auth');
 Route::patch('/board/{board}', [BoardController::class, 'rename'])->middleware(['auth', 'can:delete,board'])->name('board.rename');
@@ -39,3 +39,4 @@ Route::patch('delete_label/{label}/from_task/{task}', [LabelController::class, '
 Route::get('/profile', [SessionController::class, 'profile'])->middleware('auth');
 
 Route::post('/addfriend', [FriendController::class, 'store'])->middleware('auth');
+Route::patch('/board/{board}/tag', [BoardController::class, 'updateTag'])->middleware(['auth', 'can:delete,board'])->name('board.update-tag');
