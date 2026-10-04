@@ -149,6 +149,25 @@ public function store(Request $request)
         return back()->with('board_renamed', 'Board tag updated successfully!'); // Tu peux réutiliser le message ou en créer un autre de session
     }
 
+    public function toggleBoardTags()
+    {
+        $user = Auth::user();
+        $user->update([
+            'show_board_tags' => ! $user->show_board_tags
+        ]);
+
+        return back();
+    }
+
+    public function toggleTaskTags(Board $board)
+    {
+        $board->update([
+            'show_task_tags' => ! $board->show_task_tags
+        ]);
+
+        return back();
+    }
+
     public function destroy(Board $board)
     {
         $board->delete();

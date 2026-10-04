@@ -35,6 +35,16 @@
             </div>
 
             <div class="flex items-center gap-2">
+                <!-- Bouton pour basculer l'affichage des labels sur cette board -->
+                <form method="POST" action="{{ route('board.toggle-task-tags', $board->id) }}">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="ui-btn ui-btn-soft" title="Toggle task labels visibility">
+                        <i class="fa-solid {{ $board->show_task_tags ? 'fa-tags' : 'fa-tag' }}"></i>
+                        <span class="hidden sm:inline">{{ $board->show_task_tags ? 'Hide labels' : 'Show labels' }}</span>
+                    </button>
+                </form>
+
                 @can('delete', $board)
                     <a href="{{ route('settings', ['board' => $board->id]) }}" class="ui-btn ui-btn-neon">
                         <i class="fa-solid fa-gear"></i>
@@ -70,8 +80,8 @@
 
             <ul class="divide-y divide-white/5">
                 @foreach ($tasks as $task)
-                    <li class="group flex items-stretch gap-0 hover:bg-white/3 transition-colors {{ $task->is_completed ? 'opacity-60' : '' }}">
-                        <form class="flex items-center px-4" method="post" action="{{ route('completed_task', ['task' => $task->id])}}">
+                    <li class="group flex items-center gap-0 hover:bg-white/3 transition-colors {{ $task->is_completed ? 'opacity-60' : '' }}">
+                        <form class="flex items-center px-4 py-3" method="post" action="{{ route('completed_task', ['task' => $task->id])}}">
                             @csrf
                             @method('PATCH')
                             <input type="checkbox" name="is_completed" id="is_completed" class="ui-checkbox" {{ $task->is_completed ? 'checked' : ''}} onchange="this.form.submit()">
@@ -84,14 +94,17 @@
                                         {{ $task->name }}
                                     </p>
 
-                                    <div class="mt-2 flex flex-wrap items-center gap-2">
-                                        @foreach ($task->labels as $label)
-                                            <span class="ui-tag" style="--tag: {{ $label->color }};">
-                                                {{ $label->name }}
-                                            </span>
-                                        @endforeach
-                                        <x-modal :task="$task" :labels="$labels" />
-                                    </div>
+                                    @if($board->show_task_tags)
+                                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                                            {{-- Affichage conditionnel des labels selon le choix de la board --}}
+                                            @foreach ($task->labels as $label)
+                                                <span class="ui-tag" style="--tag: {{ $label->color }};">
+                                                    {{ $label->name }}
+                                                </span>
+                                            @endforeach
+                                            <x-modal :task="$task" :labels="$labels" />
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <form method="post" action="/delete_task/{{ $task->id }}" class="self-center">

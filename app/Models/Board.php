@@ -14,7 +14,8 @@ class Board extends Model
     protected $fillable = [
         'name',
         'tag',
-        'owner_id'
+        'owner_id',
+        'show_task_tags',
     ];
 
     public function tasks()
