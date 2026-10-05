@@ -49,7 +49,7 @@
                         New Category Name
                     </label>
                     <div class="flex items-center gap-2">
-                        <input type="text" name="tag" x-ref="categoryInput" x-model="categoryName"
+                        <input type="text" name="name" x-ref="categoryInput" x-model="categoryName"
                             @keydown.escape="openInput = false"
                             placeholder="e.g. In Progress, Backlog..." 
                             class="w-full bg-[#0b0d12] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
@@ -67,39 +67,48 @@
         </div>
 
         <div class="space-y-10">
-            @forelse ($groupedBoards as $tag => $boards)
+            <!-- 1. BOUCLE SUR LES CATÉGORIES (Vides ou pleines) -->
+            @foreach ($categories as $category)
                 <div class="bg-[#121620]/30 p-6 rounded-3xl border border-gray-800/50">
-                    <!-- En-tête de la catégorie / Tag -->
-                    <div class="flex items-center gap-3 mb-6">
-                        <h2 class="text-xl font-extrabold text-white tracking-wide uppercase">
-                            {{ !empty($tag) ? $tag : 'Uncategorized' }}
-                        </h2>
-                        <span class="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300 font-semibold border border-gray-700/50">
-                            {{ $boards->count() }}
-                        </span>
+                    <!-- En-tête de la catégorie -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-xl font-extrabold text-white tracking-wide uppercase">
+                                {{ $category->name }}
+                            </h2>
+                            <span class="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300 font-semibold border border-gray-700/50">
+                                {{ $category->boards->count() }}
+                            </span>
+                        </div>
+
+                        <!-- Croix de suppression (affichée uniquement si la catégorie est vide) -->
+                        @if ($category->boards->isEmpty())
+                            <form action="{{ route('board.category.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Supprimer cette catégorie vide ?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-gray-500 hover:text-red-400 p-2 transition-colors rounded-xl hover:bg-red-500/10" title="Delete category">
+                                    <i class="fas fa-xmark text-sm"></i>
+                                </button>
+                            </form>
+                        @endif
                     </div>
 
-                    <!-- ZONE DE DROP (Cible pour SortableJS) -->
-                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px]" data-tag="{{ $tag ?? '' }}">
-                        @foreach ($boards as $board)
-                            <!-- LA CARTE DE BOARD (Cliquable partout, mais draggable uniquement via la poignée) -->
+                    <!-- ZONE DE DROP POUR LES BOARDS DE CETTE CATÉGORIE -->
+                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px]" data-tag="{{ $category->name }}">
+                        @forelse ($category->boards as $board)
+                            <!-- LA CARTE DE BOARD -->
                             <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200 cursor-pointer" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
                                 
-                                <!-- Card Body -->
                                 <div class="p-6">
                                     <div class="flex items-start justify-between mb-4">
-                                        <!-- POIGNÉE DE DRAG & DROP (Remplace l'ancienne icône) -->
                                         <div class="board-handle w-10 h-10 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white flex items-center justify-center cursor-grab active:cursor-grabbing transition" title="Drag to reorder" onclick="event.stopPropagation()">
                                             <i class="fas fa-grip-vertical"></i>
                                         </div>
 
                                         <div class="flex items-center gap-2">
-                                            @if(!empty($board->tag))
-                                                <span class="board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20">
-                                                    {{ $board->tag }}
-                                                </span>
-                                            @endif
-                                            <!-- Bouton settings (stopPropagation indispensable) -->
+                                            <span class="board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20">
+                                                {{ $category->name }}
+                                            </span>
                                             <a href="{{ route('settings', $board->id) }}" class="text-gray-500 hover:text-gray-300 p-1 transition" title="Board settings" onclick="event.stopPropagation()">
                                                 <i class="fas fa-cog"></i>
                                             </a>
@@ -114,7 +123,6 @@
                                     </p>
                                 </div>
 
-                                <!-- Card Footer -->
                                 <div class="bg-[#0b0d12]/50 px-6 py-4 border-t border-gray-800/80 flex justify-between items-center">
                                     <span class="text-xs font-medium text-gray-400">
                                         {{ $board->tasks()->count() ?? 0 }} tasks
@@ -123,12 +131,66 @@
                                         Open <i class="fas fa-arrow-right text-xs"></i>
                                     </span>
                                 </div>
-                                
+                            </div>
+                        @empty
+                            <div class="col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center">
+                                Drop boards here or assign them from settings
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            @endforeach
+
+            <!-- 2. BLOC POUR LES BOARDS SANS CATÉGORIE (Uncategorized) -->
+            @if(isset($uncategorizedBoards) && $uncategorizedBoards->isNotEmpty())
+                <div class="bg-[#121620]/30 p-6 rounded-3xl border border-gray-800/50">
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-xl font-extrabold text-white tracking-wide uppercase">
+                            Uncategorized
+                        </h2>
+                        <span class="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300 font-semibold border border-gray-700/50">
+                            {{ $uncategorizedBoards->count() }}
+                        </span>
+                    </div>
+
+                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px]" data-tag="">
+                        @foreach ($uncategorizedBoards as $board)
+                            <!-- Rendu de la carte similaire (ou inclus via un composant partiel) -->
+                            <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200 cursor-pointer" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
+                                <div class="p-6">
+                                    <div class="flex items-start justify-between mb-4">
+                                        <div class="board-handle w-10 h-10 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white flex items-center justify-center cursor-grab active:cursor-grabbing transition" title="Drag to reorder" onclick="event.stopPropagation()">
+                                            <i class="fas fa-grip-vertical"></i>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('settings', $board->id) }}" class="text-gray-500 hover:text-gray-300 p-1 transition" title="Board settings" onclick="event.stopPropagation()">
+                                                <i class="fas fa-cog"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <h2 class="text-xl font-bold text-white group-hover:text-indigo-400 transition truncate mb-1">
+                                        {{ $board->name }}
+                                    </h2>
+                                    <p class="text-xs text-gray-400">
+                                        Owner: <span class="font-medium text-gray-300">{{ $board->owner->username ?? 'Me' }}</span>
+                                    </p>
+                                </div>
+                                <div class="bg-[#0b0d12]/50 px-6 py-4 border-t border-gray-800/80 flex justify-between items-center">
+                                    <span class="text-xs font-medium text-gray-400">
+                                        {{ $board->tasks()->count() ?? 0 }} tasks
+                                    </span>
+                                    <span class="text-indigo-400 group-hover:text-indigo-300 font-semibold text-sm flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                        Open <i class="fas fa-arrow-right text-xs"></i>
+                                    </span>
+                                </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
-            @empty
+            @endif
+
+            <!-- Si l'utilisateur n'a absolument rien (ni catégorie, ni board) -->
+            @if($categories->isEmpty() && (empty($uncategorizedBoards) || $uncategorizedBoards->isEmpty()))
                 <div class="col-span-3 text-center py-16 bg-[#121620] rounded-2xl border-2 border-dashed border-gray-800">
                     <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto mb-3 text-xl">
                         <i class="fas fa-folder-open"></i>
@@ -139,7 +201,7 @@
                         Create a board
                     </a>
                 </div>
-            @endforelse
+            @endif
         </div>
     @else
         {{-- VUE PLATE CLASSIQUE (Sans les catégories) --}}

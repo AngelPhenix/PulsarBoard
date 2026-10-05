@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Board;
 use App\Models\User;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,38 +15,17 @@ class BoardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $boards = $user->boards;
-
-        // 1. Récupère les tags déjà présents sur les boards
-        $boardTags = $boards->pluck('tag')->filter()->unique();
-
-        // 2. Récupère les catégories créées manuellement (session)
-        $customCategories = collect(session('custom_categories', []));
-
-        // 3. Fusionne le tout pour avoir la liste exhaustive
-        $allTags = $boardTags->merge($customCategories)->unique();
-
-        // 4. Reconstruit proprement le $groupedBoards avec les catégories vides
-        $groupedBoards = collect();
         
-        foreach ($allTags as $tag) {
-            $groupedBoards[$tag] = $boards->where('tag', $tag);
-        }
-        
-        // Gère les éléments "Uncategorized" (tag vide ou null)
-        $groupedBoards[''] = $boards->filter(fn($b) => empty($b->tag));
+        // Récupère toutes les catégories de l'utilisateur avec leurs boards associés
+        $categories = $user->categories()->with('boards')->get();
 
-        // Optionnel : trie les clés par ordre alphabétique en gardant 'Uncategorized' à la fin si tu veux
-        $groupedBoards = $groupedBoards->sortKeysUsing(function ($a, $b) {
-            if ($a === '') return 1;
-            if ($b === '') return -1;
-            return strcasecmp($a, $b);
-        });
+        // Récupère les boards qui n'ont aucune catégorie (les "Uncategorized")
+        $uncategorizedBoards = $user->boards()->whereNull('category_id')->get();
 
         return view('board.view', [
-            'boards' => $boards,
-            'boardList' => $boards,
-            'groupedBoards' => $groupedBoards
+            'categories' => $categories,
+            'uncategorizedBoards' => $uncategorizedBoards,
+            'boardList' => $user->boards,
         ]);
     }
 
@@ -54,18 +34,14 @@ class BoardController extends Controller
         $boards = Auth::user()->boards;
         $friends = Auth::user()->friends;
 
-        // Récupère tous les tags uniques de l'utilisateur (hors null/vides)
-        $existingTags = Auth::user()->boards()
-            ->whereNotNull('tag')
-            ->where('tag', '!=', '')
-            ->distinct()
-            ->pluck('tag');
+        // On récupère les noms des catégories de l'utilisateur pour les suggestions
+        $existingTags = Auth::user()->categories()->pluck('name');
 
         return view('board.options', [
             'board' => $board,
             'boardList' => $boards,
             'friends' => $friends,
-            'existingTags' => $existingTags, // On passe les tags à la vue
+            'existingTags' => $existingTags,
         ]);
     }
 
@@ -88,7 +64,7 @@ class BoardController extends Controller
     }
 
     // When board is created, add the owner to the board_user pivot table
-public function store(Request $request)
+    public function store(Request $request)
     {
         $attributes = $request->validate([
             'name' => ['required', 'max:80'],
@@ -97,10 +73,18 @@ public function store(Request $request)
             'tasks.*' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Adding the ID of the current logged in user as "owner_id"
+        // Gestion de la catégorie à partir du champ "tag" du formulaire de création
+        $categoryId = null;
+        if (!empty($attributes['tag'])) {
+            $category = Auth::user()->categories()->firstOrCreate([
+                'name' => trim($attributes['tag'])
+            ]);
+            $categoryId = $category->id;
+        }
+
         $boardAttributes = [
             'name' => $attributes['name'],
-            'tag' => !empty($attributes['tag']) ? trim($attributes['tag']) : null,
+            'category_id' => $categoryId,
             'owner_id' => Auth::id(),
         ];
         
@@ -109,7 +93,7 @@ public function store(Request $request)
         // Attaching the board_id to the user_id in the pivot table "board_user"
         $board->users()->attach(Auth::id());
 
-        // Si des tâches initiales ont été renseignées, on les crée et on les rattache au board
+        // Si des tâches initiales ont été renseignées
         if (!empty($attributes['tasks'])) {
             foreach ($attributes['tasks'] as $taskName) {
                 if (!empty(trim($taskName))) {
@@ -161,38 +145,35 @@ public function store(Request $request)
 
     public function updateTag(Request $request, Board $board)
     {
-        // 1. Validation du tag
-        $attributes = $request->validate([
-            'tag' => ['nullable', 'string', 'max:50'],
+        $request->validate([
+            'tag' => 'nullable|string|max:255',
         ]);
 
-        // 2. Mise à jour de la board (nettoyage des espaces ou null si vide)
-        $board->update([
-            'tag' => !empty($attributes['tag']) ? trim($attributes['tag']) : null,
-        ]);
+        $categoryId = null;
 
-        // 3. Réponse adaptée selon le type de requête
-        if ($request->expectsJson()) {
-            // Si ça vient du Drag & Drop (AJAX / Fetch)
-            return response()->json(['success' => true]);
+        if ($request->filled('tag')) {
+            // On cherche ou on crée la catégorie pour l'utilisateur connecté
+            $category = Auth::user()->categories()->firstOrCreate([
+                'name' => trim($request->tag)
+            ]);
+            $categoryId = $category->id;
         }
 
-        // Sinon, si c'est un formulaire classique (ex: page de settings)
-        return back()->with('board_renamed', 'Board tag updated successfully!');
+        // On met à jour le board avec le category_id
+        $board->update([
+            'category_id' => $categoryId
+        ]);
+
+        return back()->with('success', 'Catégorie mise à jour avec succès !');
     }
 
     public function settings(Board $board)
     {
-        // 1. Récupère la liste des amis de l'utilisateur connecté (pour le select des collaborateurs)
-        $friends = auth()->user()->friends; // Adapte selon le nom de ta relation (ex: friends(), or similar)
+        $friends = Auth::user()->friends;
 
-        // 2. Récupère tous les tags uniques existants pour les suggestions de la vue
-        $existingTags = Board::whereNotNull('tag')
-            ->where('tag', '!=', '')
-            ->distinct()
-            ->pluck('tag');
+        // Idem ici
+        $existingTags = Auth::user()->categories()->pluck('name');
 
-        // 3. Retourne la vue avec toutes les variables nécessaires
         return view('board.options', compact('board', 'friends', 'existingTags'));
     }
 
@@ -217,20 +198,30 @@ public function store(Request $request)
 
     public function storeCategory(Request $request)
     {
-        $request->validate([
-            'tag' => 'required|string|max:255',
+        $request->validate(['name' => 'required|string|max:255']);
+
+        Auth::user()->categories()->create([
+            'name' => $request->name
         ]);
 
-        // On récupère les catégories en session (ou on initialise un tableau)
-        $categories = session('custom_categories', []);
+        return back()->with('success', 'Catégorie créée avec succès !');
+    }
 
-        // Si le tag n'existe pas encore, on l'ajoute
-        if (!in_array($request->tag, $categories)) {
-            $categories[] = $request->tag;
-            session(['custom_categories' => $categories]);
+    public function destroyCategory(Category $category)
+    {
+        // Sécurité : Vérifie que la catégorie appartient bien à l'utilisateur connecté
+        if ($category->user_id !== Auth::id()) {
+            abort(403);
         }
 
-        return redirect()->back()->with('success', 'Category created successfully!');
+        // Empêche la suppression si elle contient des boards
+        if ($category->boards()->count() > 0) {
+            return back()->with('error', 'Impossible de supprimer une catégorie qui contient encore des boards.');
+        }
+
+        $category->delete();
+
+        return back()->with('success', 'Catégorie supprimée.');
     }
 
     public function destroy(Board $board)

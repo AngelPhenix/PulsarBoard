@@ -35,7 +35,7 @@
         @endcan
 
         @can('delete', $board)
-            <div class="ui-card p-5" x-data="{ tag: @js($board->tag) }">
+            <div class="ui-card p-5" x-data="{ tag: @js($board->category?->name ?? '') }">
                 <div class="ui-h2">Board Tag</div>
                 <div class="ui-caption mt-1">Assign or update a category tag for this board.</div>
 

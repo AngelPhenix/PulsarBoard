@@ -27,6 +27,7 @@ Route::patch('/board/{board}/toggle-task-tags', [BoardController::class, 'toggle
 Route::post('/board/category/store', [BoardController::class, 'storeCategory'])->name('board.category.store');
 Route::patch('/board/{board}/tag', [BoardController::class, 'updateTag'])->name('board.update-tag');
 Route::get('/board/{board}/settings', [BoardController::class, 'settings'])->name('settings');
+Route::delete('/board/category/{category}', [BoardController::class, 'destroyCategory'])->middleware('auth')->name('board.category.destroy');
 
 Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'create']);

@@ -13,7 +13,7 @@ class Board extends Model
 
     protected $fillable = [
         'name',
-        'tag',
+        'category_id',
         'owner_id',
         'show_task_tags',
     ];
@@ -36,5 +36,15 @@ class Board extends Model
     public function historic()
     {
         return $this->hasOne(Historic::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function getTagAttribute()
+    {
+        return $this->category?->name;
     }
 }

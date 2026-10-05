@@ -59,7 +59,7 @@ class User extends Authenticatable
 
     public function boards()
     {
-        return $this->belongsToMany(Board::class);
+        return $this->hasMany(Board::class, 'owner_id');
     }
 
     public function labels()
@@ -70,5 +70,10 @@ class User extends Authenticatable
     public function friends()
     {
         return $this->belongsToMany(User::class, 'friend_user', 'user_id', 'friend_id');
+    }
+
+    public function categories()
+    {
+        return $this->hasMany(Category::class);
     }
 }
