@@ -277,19 +277,22 @@
 
                 // Déclenché quand une carte est déposée dans CE conteneur
                 onAdd: function (evt) {
-                    const boardId = evt.item.dataset.boardId; 
+                    // On s'assure de trouver l'élément parent qui possède le data-board-id
+                    const boardCard = evt.item.closest('[data-board-id]') || evt.item;
+                    const boardId = boardCard.dataset.boardId; 
+                    
                     const targetContainer = evt.to; 
                     const newTag = targetContainer.dataset.tag; 
 
-                    console.log("Board ID récupéré :", boardId); // <-- Ajoute ceci pour déboguer
+                    console.log("Board ID récupéré :", boardId); 
                     console.log("Nouveau tag :", newTag);
 
                     if (!boardId) {
-                        console.error("Erreur : boardId est introuvable sur l'élément !");
+                        console.error("Erreur : boardId est introuvable sur l'élément !", evt.item);
                         return;
                     }
 
-                    updateBoardTag(boardId, newTag, evt.item);
+                    updateBoardTag(boardId, newTag, boardCard);
                 }
             });
         });

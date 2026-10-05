@@ -164,7 +164,7 @@ class BoardController extends Controller
             'category_id' => $categoryId
         ]);
 
-        return back()->with('success', 'Catégorie mise à jour avec succès !');
+        return response()->json(['success' => true]);
     }
 
     public function settings(Board $board)
