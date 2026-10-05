@@ -156,6 +156,21 @@ public function store(Request $request)
         return back()->with('board_renamed', 'Board tag updated successfully!');
     }
 
+    public function settings(Board $board)
+    {
+        // 1. Récupère la liste des amis de l'utilisateur connecté (pour le select des collaborateurs)
+        $friends = auth()->user()->friends; // Adapte selon le nom de ta relation (ex: friends(), or similar)
+
+        // 2. Récupère tous les tags uniques existants pour les suggestions de la vue
+        $existingTags = Board::whereNotNull('tag')
+            ->where('tag', '!=', '')
+            ->distinct()
+            ->pluck('tag');
+
+        // 3. Retourne la vue avec toutes les variables nécessaires
+        return view('board.options', compact('board', 'friends', 'existingTags'));
+    }
+
     public function toggleBoardTags()
     {
         $user = Auth::user();
@@ -173,6 +188,19 @@ public function store(Request $request)
         ]);
 
         return back();
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $request->validate([
+            'tag' => 'required|string|max:255',
+        ]);
+
+        // Option A : Si tu stockes les tags sur une table dédiée, enregistre-le ici.
+        // Option B : Si les tags sont juste une colonne sur tes boards, tu peux par exemple 
+        // créer un board vide rattaché à ce tag, ou gérer une table "categories".
+
+        return redirect()->back()->with('success', 'Category created successfully!');
     }
 
     public function destroy(Board $board)

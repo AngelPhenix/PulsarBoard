@@ -24,7 +24,9 @@ Route::delete('/delete_board/{board}', [BoardController::class, 'destroy'])->mid
 Route::get('/settings/{board}', [BoardController::class, 'options'])->middleware(['auth', 'can:delete,board'])->name('settings');
 Route::patch('/user/toggle-board-tags', [BoardController::class, 'toggleBoardTags'])->name('user.toggle-board-tags');
 Route::patch('/board/{board}/toggle-task-tags', [BoardController::class, 'toggleTaskTags'])->name('board.toggle-task-tags');
-Route::patch('/board/{board}/tag', [BoardController::class, 'updateTag'])->name('board.tag');
+Route::post('/board/category/store', [BoardController::class, 'storeCategory'])->name('board.category.store');
+Route::patch('/board/{board}/tag', [BoardController::class, 'updateTag'])->name('board.update-tag');
+Route::get('/board/{board}/settings', [BoardController::class, 'settings'])->name('settings');
 
 Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'create']);
