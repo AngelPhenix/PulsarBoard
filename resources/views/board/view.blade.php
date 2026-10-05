@@ -64,7 +64,7 @@
 
                                         <div class="flex items-center gap-2">
                                             @if(!empty($board->tag))
-                                                <span class="text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20">
+                                                <span class="board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20">
                                                     {{ $board->tag }}
                                                 </span>
                                             @endif
@@ -169,3 +169,91 @@
         @endif
     @endif
 </x-layout>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Sélectionne tous les conteneurs de cartes
+        const containers = document.querySelectorAll('.board-container');
+
+        containers.forEach(container => {
+            new Sortable(container, {
+                group: 'boards-group', // Permet de faire voyager les cartes entre les différents blocs
+                animation: 150,
+                handle: '.board-handle', // Indique qu'on attrape la carte uniquement par la poignée
+                ghostClass: 'opacity-40', // Effet visuel transparent sur la carte pendant qu'on la déplace
+
+                // Déclenché quand une carte est déposée dans CE conteneur
+                onAdd: function (evt) {
+                    const boardId = evt.item.dataset.boardId; 
+                    const targetContainer = evt.to; 
+                    const newTag = targetContainer.dataset.tag; 
+
+                    console.log("Board ID récupéré :", boardId); // <-- Ajoute ceci pour déboguer
+                    console.log("Nouveau tag :", newTag);
+
+                    if (!boardId) {
+                        console.error("Erreur : boardId est introuvable sur l'élément !");
+                        return;
+                    }
+
+                    updateBoardTag(boardId, newTag, evt.item);
+                }
+            });
+        });
+
+        // Fonction pour envoyer la modification à Laravel en AJAX
+        function updateBoardTag(boardId, tag, boardCardElement) {
+            if (!boardId) return;
+
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.content : '';
+
+            fetch(`/board/${boardId}/tag`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json' // Force Laravel à répondre en JSON
+                },
+                body: JSON.stringify({ tag: tag === "" ? null : tag })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur réseau ou serveur');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    console.log('Tag mis à jour avec succès !');
+                    
+                    const tagBadgeContainer = boardCardElement.querySelector('.board-tag-badge');
+                    const badgeContainer = boardCardElement.querySelector('.flex.items-center.gap-2'); // Conteneur du badge et de l'icône settings
+
+                    if (tag !== "") {
+                        if (tagBadgeContainer) {
+                            // S'il y avait déjà un badge, on change juste son texte
+                            tagBadgeContainer.textContent = tag;
+                        } else {
+                            // S'il n'y avait pas de badge (ex: venait d'Uncategorized), on le crée
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20';
+                            newBadge.textContent = tag;
+                            if (badgeContainer) {
+                                badgeContainer.prepend(newBadge);
+                            }
+                        }
+                    } else {
+                        // Si on l'a déplacé dans "Uncategorized" (tag vide), on supprime le badge s'il existe
+                        if (tagBadgeContainer) {
+                            tagBadgeContainer.remove();
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du déplacement de la board :', error);
+            });
+        }
+    });
+</script>

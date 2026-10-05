@@ -136,17 +136,24 @@ public function store(Request $request)
 
     public function updateTag(Request $request, Board $board)
     {
-        // Validation du tag
+        // 1. Validation du tag
         $attributes = $request->validate([
             'tag' => ['nullable', 'string', 'max:50'],
         ]);
 
-        // Mise à jour de la board (on nettoie les espaces ou on met à null si vide)
+        // 2. Mise à jour de la board (nettoyage des espaces ou null si vide)
         $board->update([
             'tag' => !empty($attributes['tag']) ? trim($attributes['tag']) : null,
         ]);
 
-        return back()->with('board_renamed', 'Board tag updated successfully!'); // Tu peux réutiliser le message ou en créer un autre de session
+        // 3. Réponse adaptée selon le type de requête
+        if ($request->expectsJson()) {
+            // Si ça vient du Drag & Drop (AJAX / Fetch)
+            return response()->json(['success' => true]);
+        }
+
+        // Sinon, si c'est un formulaire classique (ex: page de settings)
+        return back()->with('board_renamed', 'Board tag updated successfully!');
     }
 
     public function toggleBoardTags()

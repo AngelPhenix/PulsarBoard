@@ -22,9 +22,9 @@ Route::patch('/board/{board}', [BoardController::class, 'rename'])->middleware([
 Route::post('/board_addfriend/{board}', [BoardController::class, 'addFriend'])->middleware(['auth', 'can:addFriend,board']);
 Route::delete('/delete_board/{board}', [BoardController::class, 'destroy'])->middleware(['auth', 'can:delete,board']);
 Route::get('/settings/{board}', [BoardController::class, 'options'])->middleware(['auth', 'can:delete,board'])->name('settings');
-Route::patch('/board/{board}/tag', [BoardController::class, 'updateTag'])->middleware(['auth', 'can:delete,board'])->name('board.update-tag');
 Route::patch('/user/toggle-board-tags', [BoardController::class, 'toggleBoardTags'])->name('user.toggle-board-tags');
 Route::patch('/board/{board}/toggle-task-tags', [BoardController::class, 'toggleTaskTags'])->name('board.toggle-task-tags');
+Route::patch('/board/{board}/tag', [BoardController::class, 'updateTag'])->name('board.tag');
 
 Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'create']);
