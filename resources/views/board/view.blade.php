@@ -35,75 +35,81 @@
             });
         @endphp
 
-        @forelse ($groupedBoards as $tag => $boards)
-            <div class="mb-10">
-                <!-- En-tête de la catégorie / Tag -->
-                <div class="flex items-center gap-3 mb-4">
-                    <h2 class="text-lg font-bold text-gray-200 uppercase tracking-wider">
-                        {{ !empty($tag) ? $tag : 'Uncategorized' }}
-                    </h2>
-                    <span class="text-xs px-2.5 py-0.5 rounded-full bg-gray-800 text-gray-400 font-medium">
-                        {{ $boards->count() }}
-                    </span>
-                </div>
+        <div class="space-y-10">
+            @forelse ($groupedBoards as $tag => $boards)
+                <div class="bg-[#121620]/30 p-6 rounded-3xl border border-gray-800/50">
+                    <!-- En-tête de la catégorie / Tag -->
+                    <div class="flex items-center gap-3 mb-6">
+                        <h2 class="text-xl font-extrabold text-white tracking-wide uppercase">
+                            {{ !empty($tag) ? $tag : 'Uncategorized' }}
+                        </h2>
+                        <span class="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300 font-semibold border border-gray-700/50">
+                            {{ $boards->count() }}
+                        </span>
+                    </div>
 
-                <!-- Grille des cards pour ce tag précis -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach ($boards as $board)
-                        <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200">
-                            
-                            <!-- Card Body -->
-                            <div class="p-6">
-                                <div class="flex items-start justify-between mb-4">
-                                    <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold">
-                                        <i class="fas fa-columns"></i>
+                    <!-- ZONE DE DROP (Cible pour SortableJS) -->
+                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px]" data-tag="{{ $tag ?? '' }}">
+                        @foreach ($boards as $board)
+                            <!-- LA CARTE DE BOARD (Cliquable partout, mais draggable uniquement via la poignée) -->
+                            <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200 cursor-pointer" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
+                                
+                                <!-- Card Body -->
+                                <div class="p-6">
+                                    <div class="flex items-start justify-between mb-4">
+                                        <!-- POIGNÉE DE DRAG & DROP (Remplace l'ancienne icône) -->
+                                        <div class="board-handle w-10 h-10 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white flex items-center justify-center cursor-grab active:cursor-grabbing transition" title="Drag to reorder" onclick="event.stopPropagation()">
+                                            <i class="fas fa-grip-vertical"></i>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            @if(!empty($board->tag))
+                                                <span class="text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20">
+                                                    {{ $board->tag }}
+                                                </span>
+                                            @endif
+                                            <!-- Bouton settings (stopPropagation indispensable) -->
+                                            <a href="{{ route('settings', $board->id) }}" class="text-gray-500 hover:text-gray-300 p-1 transition" title="Board settings" onclick="event.stopPropagation()">
+                                                <i class="fas fa-cog"></i>
+                                            </a>
+                                        </div>
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        @if(!empty($board->tag))
-                                            <span class="text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20">
-                                                {{ $board->tag }}
-                                            </span>
-                                        @endif
-                                        <a href="{{ route('settings', $board->id) }}" class="text-gray-500 hover:text-gray-300 p-1 transition" title="Board settings">
-                                            <i class="fas fa-cog"></i>
-                                        </a>
-                                    </div>
+
+                                    <h2 class="text-xl font-bold text-white group-hover:text-indigo-400 transition truncate mb-1">
+                                        {{ $board->name }}
+                                    </h2>
+                                    <p class="text-xs text-gray-400">
+                                        Owner: <span class="font-medium text-gray-300">{{ $board->owner->username ?? 'Me' }}</span>
+                                    </p>
                                 </div>
 
-                                <h2 class="text-xl font-bold text-white group-hover:text-indigo-400 transition truncate mb-1">
-                                    {{ $board->name }}
-                                </h2>
-                                <p class="text-xs text-gray-400">
-                                    Owner: <span class="font-medium text-gray-300">{{ $board->owner->username ?? 'Me' }}</span>
-                                </p>
+                                <!-- Card Footer -->
+                                <div class="bg-[#0b0d12]/50 px-6 py-4 border-t border-gray-800/80 flex justify-between items-center">
+                                    <span class="text-xs font-medium text-gray-400">
+                                        {{ $board->tasks()->count() ?? 0 }} tasks
+                                    </span>
+                                    <span class="text-indigo-400 group-hover:text-indigo-300 font-semibold text-sm flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                        Open <i class="fas fa-arrow-right text-xs"></i>
+                                    </span>
+                                </div>
+                                
                             </div>
-
-                            <!-- Card Footer -->
-                            <div class="bg-[#0b0d12]/50 px-6 py-4 border-t border-gray-800/80 flex justify-between items-center">
-                                <span class="text-xs font-medium text-gray-400">
-                                    {{ $board->tasks()->count() ?? 0 }} tasks
-                                </span>
-                                <a href="/board/{{ $board->id }}" class="text-indigo-400 hover:text-indigo-300 font-semibold text-sm flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                                    Open <i class="fas fa-arrow-right text-xs"></i>
-                                </a>
-                            </div>
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
-            </div>
-        @empty
-            <div class="col-span-3 text-center py-16 bg-[#121620] rounded-2xl border-2 border-dashed border-gray-800">
-                <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto mb-3 text-xl">
-                    <i class="fas fa-folder-open"></i>
+            @empty
+                <div class="col-span-3 text-center py-16 bg-[#121620] rounded-2xl border-2 border-dashed border-gray-800">
+                    <div class="w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <p class="text-gray-200 font-medium mb-1">No boards found</p>
+                    <p class="text-sm text-gray-400 mb-4">Create your first board to start organizing your tasks.</p>
+                    <a href="/board_create" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-xl shadow transition">
+                        Create a board
+                    </a>
                 </div>
-                <p class="text-gray-200 font-medium mb-1">No boards found</p>
-                <p class="text-sm text-gray-400 mb-4">Create your first board to start organizing your tasks.</p>
-                <a href="/board_create" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-4 py-2 rounded-xl shadow transition">
-                    Create a board
-                </a>
-            </div>
-        @endforelse
-
+            @endforelse
+        </div>
     @else
         {{-- VUE PLATE CLASSIQUE (Sans les catégories) --}}
         @if($boardList->isNotEmpty())
