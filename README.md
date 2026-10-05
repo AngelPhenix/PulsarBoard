@@ -46,7 +46,10 @@ Test the application directly here: **[https://quicktodolaravelproject-8lll.onre
 - [x] **Streamlined Task Creation:** Enable direct task creation right from the board setup view.
 - [x] **Smart Focus:** Automatically focus the input field when writing a task for a smoother user experience.
 - [x] **Tag Visibility Toggle:** Provide an option to show or hide tags dynamically on the cards.
-- [x] **Advanced Filtering:** Implement filtering options directly on boards using specific tags defined by the board administrator.
+- [ ] **Fix Board Options Update Redirect:** Resolve the leftover `dd()` debug block in the board options update action, and ensure a proper redirect back to the options or the board view after changing categories.
+- [ ] **Add Inline Back Navigation:** Introduce a custom "back" arrow button next to board titles and option headers for smoother in-app navigation without relying on the browser's history button.
+- [ ] **Optimize Category Block Layout:** Redesign the main view category headers to place category names and delete buttons inline with their section dividers, reducing vertical footprint and improving space efficiency.
+- [ ] **Collapsible Sidebar:** Implement a toggleable sidebar feature (icon-only minimized mode via a collapse arrow) to maximize screen workspace.
 
 ---
 
