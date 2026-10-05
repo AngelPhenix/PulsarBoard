@@ -2,6 +2,8 @@
     $showTags = Auth::user()->show_board_tags;
 @endphp
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <x-layout :boardList='$boardList ?? null'>
     <div class="flex justify-between items-center mb-8">
         <div>
@@ -11,7 +13,7 @@
         
         <div class="flex items-center gap-3">
             <!-- Bouton pour basculer l'affichage des tags -->
-            <form method="POST" action="{{ route('user.toggle-board-tags') }}">
+            <form method="POST" action="{{ route('user.toggle-board-tags') }}" class="m-0 inline-block">
                 @csrf
                 @method('PATCH')
                 <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2.5 rounded-xl border border-gray-700 transition flex items-center gap-2" title="Toggle view mode">
@@ -28,73 +30,38 @@
     </div>
 
     @if($showTags)
-        <!-- Bouton et formulaire pour ajouter une catégorie -->
-        <div x-data="{ openInput: false, categoryName: '' }" class="my-8">
-            
-            <!-- 1. MODE LIGNE / BOUTON -->
-            <div x-show="!openInput" @click="openInput = true; $nextTick(() => $refs.categoryInput.focus())" 
-                class="flex items-center gap-4 cursor-pointer group py-4">
-                <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
-                <span class="text-xs font-semibold tracking-wider text-gray-500 group-hover:text-indigo-400 uppercase transition-colors flex items-center gap-2 select-none">
-                    <i class="fas fa-plus text-[10px]"></i> add new category
-                </span>
-                <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
-            </div>
-
-            <!-- 2. MODE FORMULAIRE DE SAISIE -->
-            <div x-show="openInput" style="display: none;" class="max-w-md mx-auto">
-                <form action="{{ route('board.category.store') }}" method="POST" class="bg-[#121620] border border-indigo-500/40 rounded-3xl p-5 shadow-2xl">
-                    @csrf
-                    <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
-                        New Category Name
-                    </label>
-                    <div class="flex items-center gap-2">
-                        <input type="text" name="name" x-ref="categoryInput" x-model="categoryName"
-                            @keydown.escape="openInput = false"
-                            placeholder="e.g. In Progress, Backlog..." 
-                            class="w-full bg-[#0b0d12] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-                        
-                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shrink-0">
-                            Add
-                        </button>
-                        <button type="button" @click="openInput = false" class="text-gray-500 hover:text-gray-300 px-3 py-2 text-xs transition">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-        </div>
-
-        <div class="space-y-10">
-            <!-- 1. BOUCLE SUR LES CATÉGORIES (Vides ou pleines) -->
+        <div class="space-y-12">
+            <!-- 1. BOUCLE SUR LES CATÉGORIES -->
             @foreach ($categories as $category)
-                <div class="category-block bg-[#121620]/30 p-6 rounded-3xl border border-gray-800/50">
-                    <!-- En-tête de la catégorie -->
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center gap-3">
-                            <h2 class="text-xl font-extrabold text-white tracking-wide uppercase">
-                                {{ $category->name }}
-                            </h2>
-                        </div>
+                <div class="category-block relative pt-3 px-4 pb-3 rounded-3xl border border-gray-800/50 bg-[#121620]/20">
+                    
+                    <!-- EN-TÊTE INTÉGRÉ SUR LA BORDURE SUPÉRIEURE -->
+                    <div class="absolute -top-3.5 left-6 right-6 flex items-center gap-4 select-none">
+                        <!-- Nom de la catégorie -->
+                        <h2 class="h-[25px] text-xs font-extrabold text-gray-400 tracking-wider uppercase bg-[#0b0d12] px-3 rounded-md border border-gray-800 flex items-center gap-2">
+                            <span class="text-indigo-400">#</span> {{ $category->name }}
+                        </h2>
 
-                        <!-- Croix de suppression -->
-                        <form action="{{ route('board.category.destroy', $category->id) }}" method="POST" class="inline delete-category-form">
+                        <!-- Ligne horizontale de séparation au milieu -->
+                        <div class="h-[1px] bg-gray-000 flex-grow"></div>
+
+                        <!-- Croix de suppression avec zone cliquable sur tout le bouton -->
+                        <form action="{{ route('board.category.destroy', $category->id) }}" method="POST" class="inline delete-category-form bg-[#0b0d12] h-[25px] rounded-md border border-gray-800 flex items-center justify-center m-0 overflow-hidden">
                             @csrf
                             @method('DELETE')
                             <button 
                                 type="button" 
-                                class="category-delete-btn text-gray-500 hover:text-red-400 p-1.5 transition rounded-lg hover:bg-white/5"
+                                class="category-delete-btn text-gray-500 hover:text-red-400 hover:bg-gray-800/50 w-full h-full px-2.5 transition flex items-center justify-center cursor-pointer"
                                 data-empty="{{ $category->boards->isEmpty() ? 'true' : 'false' }}"
                                 title="Delete category"
                             >
-                                <i class="fas fa-times"></i>
+                                <i class="fas fa-times text-xs"></i>
                             </button>
                         </form>
                     </div>
 
                     <!-- ZONE DE DROP POUR LES BOARDS DE CETTE CATÉGORIE -->
-                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px]" data-tag="{{ $category->name }}">
+                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px] mt-2" data-tag="{{ $category->name }}">
                         @forelse ($category->boards as $board)
                             <!-- LA CARTE DE BOARD -->
                             <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200 cursor-pointer" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
@@ -133,7 +100,7 @@
                                 </div>
                             </div>
                         @empty
-                            <div class=" empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center">
+                            <div class="empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center">
                                 Drop boards here or assign them from settings
                             </div>
                         @endforelse
@@ -188,6 +155,8 @@
                     </div>
                 </div>
             @endif
+        
+        
 
             <!-- Si l'utilisateur n'a absolument rien (ni catégorie, ni board) -->
             @if($categories->isEmpty() && (empty($uncategorizedBoards) || $uncategorizedBoards->isEmpty()))
@@ -202,6 +171,44 @@
                     </a>
                 </div>
             @endif
+        </div>
+
+        <!-- Bouton et formulaire pour ajouter une catégorie -->
+        <div x-data="{ openInput: false, categoryName: '' }" class="my-8">
+
+            <!-- 1. MODE LIGNE / BOUTON -->
+            <div x-show="!openInput" @click="openInput = true; $nextTick(() => $refs.categoryInput.focus())" 
+                class="flex items-center gap-4 cursor-pointer group py-4">
+                <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
+                <span class="text-xs font-semibold tracking-wider text-gray-500 group-hover:text-indigo-400 uppercase transition-colors flex items-center gap-2 select-none">
+                    <i class="fas fa-plus text-[10px]"></i> add new category
+                </span>
+                <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
+            </div>
+
+            <!-- 2. MODE FORMULAIRE DE SAISIE -->
+            <div x-show="openInput" style="display: none;" class="max-w-md mx-auto">
+                <form action="{{ route('board.category.store') }}" method="POST" class="bg-[#121620] border border-indigo-500/40 rounded-3xl p-5 shadow-2xl">
+                    @csrf
+                    <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+                        New Category Name
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" name="name" x-ref="categoryInput" x-model="categoryName"
+                            @keydown.escape="openInput = false"
+                            placeholder="e.g. In Progress, Backlog..." 
+                            class="w-full bg-[#0b0d12] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shrink-0">
+                            Add
+                        </button>
+                        <button type="button" @click="openInput = false" class="text-gray-500 hover:text-gray-300 px-3 py-2 text-xs transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     @else
         {{-- VUE PLATE CLASSIQUE (Sans les catégories) --}}
