@@ -28,60 +28,43 @@
     </div>
 
     @if($showTags)
-        @php
-            // Regroupe les boards par tag et force les vides/null à la fin
-            $groupedBoards = $boardList->groupBy('tag')->sortBy(function ($boards, $tag) {
-                return empty($tag) ? 'zzz_uncategorized' : strtolower($tag);
-            });
-        @endphp
-
-
-
-
-
-
-
         <!-- Bouton et formulaire pour ajouter une catégorie -->
         <div x-data="{ openInput: false, categoryName: '' }" class="my-8">
-    
-    <!-- 1. MODE LIGNE / BOUTON -->
-    <div x-show="!openInput" @click="openInput = true; $nextTick(() => $refs.categoryInput.focus())" 
-         class="flex items-center gap-4 cursor-pointer group py-4">
-        <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
-        <span class="text-xs font-semibold tracking-wider text-gray-500 group-hover:text-indigo-400 uppercase transition-colors flex items-center gap-2 select-none">
-            <i class="fas fa-plus text-[10px]"></i> add new category
-        </span>
-        <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
-    </div>
-
-    <!-- 2. MODE FORMULAIRE DE SAISIE -->
-    <div x-show="openInput" style="display: none;" class="max-w-md mx-auto">
-        <form action="{{ route('board.category.store') }}" method="POST" class="bg-[#121620] border border-indigo-500/40 rounded-3xl p-5 shadow-2xl">
-            @csrf
-            <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
-                New Category Name
-            </label>
-            <div class="flex items-center gap-2">
-                <input type="text" name="tag" x-ref="categoryInput" x-model="categoryName"
-                       @keydown.escape="openInput = false"
-                       placeholder="e.g. In Progress, Backlog..." 
-                       class="w-full bg-[#0b0d12] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-                
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shrink-0">
-                    Add
-                </button>
-                <button type="button" @click="openInput = false" class="text-gray-500 hover:text-gray-300 px-3 py-2 text-xs transition">
-                    Cancel
-                </button>
+            
+            <!-- 1. MODE LIGNE / BOUTON -->
+            <div x-show="!openInput" @click="openInput = true; $nextTick(() => $refs.categoryInput.focus())" 
+                class="flex items-center gap-4 cursor-pointer group py-4">
+                <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
+                <span class="text-xs font-semibold tracking-wider text-gray-500 group-hover:text-indigo-400 uppercase transition-colors flex items-center gap-2 select-none">
+                    <i class="fas fa-plus text-[10px]"></i> add new category
+                </span>
+                <div class="h-[1px] bg-gray-800 flex-grow group-hover:bg-indigo-500/50 transition-colors"></div>
             </div>
-        </form>
-    </div>
 
-</div>
+            <!-- 2. MODE FORMULAIRE DE SAISIE -->
+            <div x-show="openInput" style="display: none;" class="max-w-md mx-auto">
+                <form action="{{ route('board.category.store') }}" method="POST" class="bg-[#121620] border border-indigo-500/40 rounded-3xl p-5 shadow-2xl">
+                    @csrf
+                    <label class="block text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+                        New Category Name
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" name="tag" x-ref="categoryInput" x-model="categoryName"
+                            @keydown.escape="openInput = false"
+                            placeholder="e.g. In Progress, Backlog..." 
+                            class="w-full bg-[#0b0d12] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition shrink-0">
+                            Add
+                        </button>
+                        <button type="button" @click="openInput = false" class="text-gray-500 hover:text-gray-300 px-3 py-2 text-xs transition">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
 
-
-
-
+        </div>
 
         <div class="space-y-10">
             @forelse ($groupedBoards as $tag => $boards)

@@ -13,9 +13,34 @@ class BoardController extends Controller
 {
     public function index()
     {
-        $boards = Auth::user()->boards;
+        $user = Auth::user();
+        $boards = $user->boards;
 
-        $groupedBoards = $boards->groupBy('tag');
+        // 1. Récupère les tags déjà présents sur les boards
+        $boardTags = $boards->pluck('tag')->filter()->unique();
+
+        // 2. Récupère les catégories créées manuellement (session)
+        $customCategories = collect(session('custom_categories', []));
+
+        // 3. Fusionne le tout pour avoir la liste exhaustive
+        $allTags = $boardTags->merge($customCategories)->unique();
+
+        // 4. Reconstruit proprement le $groupedBoards avec les catégories vides
+        $groupedBoards = collect();
+        
+        foreach ($allTags as $tag) {
+            $groupedBoards[$tag] = $boards->where('tag', $tag);
+        }
+        
+        // Gère les éléments "Uncategorized" (tag vide ou null)
+        $groupedBoards[''] = $boards->filter(fn($b) => empty($b->tag));
+
+        // Optionnel : trie les clés par ordre alphabétique en gardant 'Uncategorized' à la fin si tu veux
+        $groupedBoards = $groupedBoards->sortKeysUsing(function ($a, $b) {
+            if ($a === '') return 1;
+            if ($b === '') return -1;
+            return strcasecmp($a, $b);
+        });
 
         return view('board.view', [
             'boards' => $boards,
@@ -196,9 +221,14 @@ public function store(Request $request)
             'tag' => 'required|string|max:255',
         ]);
 
-        // Option A : Si tu stockes les tags sur une table dédiée, enregistre-le ici.
-        // Option B : Si les tags sont juste une colonne sur tes boards, tu peux par exemple 
-        // créer un board vide rattaché à ce tag, ou gérer une table "categories".
+        // On récupère les catégories en session (ou on initialise un tableau)
+        $categories = session('custom_categories', []);
+
+        // Si le tag n'existe pas encore, on l'ajoute
+        if (!in_array($request->tag, $categories)) {
+            $categories[] = $request->tag;
+            session(['custom_categories' => $categories]);
+        }
 
         return redirect()->back()->with('success', 'Category created successfully!');
     }
