@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Board;
 use App\Models\Task;
 use App\Models\Label;
+use App\Models\Category;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -23,7 +24,18 @@ class DemoSeeder extends Seeder
             ]
         );
 
-        // 2. Créer des labels/tags colorés spécifiques
+        // 2. Créer des catégories de boards propres
+        $catTravail = Category::firstOrCreate([
+            'name' => 'Travail',
+            'user_id' => $recruiter->id
+        ]);
+
+        $catPersonnel = Category::firstOrCreate([
+            'name' => 'Personnel',
+            'user_id' => $recruiter->id
+        ]);
+
+        // 3. Créer des labels/tags colorés spécifiques
         $labelUrgent = Label::create([
             'name' => 'Urgent', 
             'color' => '#ef4444', 
@@ -48,7 +60,7 @@ class DemoSeeder extends Seeder
         $boardBackend = Board::create([
             'name' => 'Refonte Backend & Sécurité API',
             'owner_id' => $recruiter->id,
-            'tag' => 'Travail',
+            'category_id' => $catTravail->id,
             'show_task_tags' => true,
         ]);
         $boardBackend->users()->attach($recruiter->id);
@@ -82,7 +94,7 @@ class DemoSeeder extends Seeder
         $boardFrontend = Board::create([
             'name' => 'Migration Tailwind & Mode Sombre',
             'owner_id' => $recruiter->id,
-            'tag' => 'Travail',
+            'category_id' => $catPersonnel->id,
             'show_task_tags' => false,
         ]);
         $boardFrontend->users()->attach($recruiter->id);
@@ -112,6 +124,7 @@ class DemoSeeder extends Seeder
         $boardDevops = Board::create([
             'name' => 'Pipeline CI/CD & Déploiement Render',
             'owner_id' => $recruiter->id,
+            'category_id' => $catTravail->id,
             'show_task_tags' => true,
         ]);
         $boardDevops->users()->attach($recruiter->id);
