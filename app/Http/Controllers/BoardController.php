@@ -207,6 +207,22 @@ class BoardController extends Controller
         return back()->with('success', 'Catégorie créée avec succès !');
     }
 
+    public function updateCategoryManually(Request $request, Category $category)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $category->update([
+            'name' => $request->name
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'name' => $category->name
+        ]);
+    }
+
     public function destroyCategory(Category $category)
     {
         // Sécurité : Vérifie que la catégorie appartient bien à l'utilisateur connecté

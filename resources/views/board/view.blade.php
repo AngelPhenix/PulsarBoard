@@ -37,10 +37,20 @@
                     
                     <!-- EN-TÊTE INTÉGRÉ SUR LA BORDURE SUPÉRIEURE -->
                     <div class="absolute -top-3.5 left-6 right-6 flex items-center gap-4 select-none">
-                        <!-- Nom de la catégorie -->
-                        <h2 class="h-[25px] text-xs font-extrabold text-gray-400 tracking-wider uppercase bg-[#0b0d12] px-3 rounded-md border border-gray-800 flex items-center gap-2">
-                            <span class="text-indigo-400">#</span> {{ $category->name }}
+                        <!-- Mode Affichage (le h2) -->
+                        <h2 class="category-name-display h-[25px] text-xs font-extrabold text-gray-400 tracking-wider uppercase bg-[#0b0d12] px-3 rounded-md border border-gray-800 flex items-center gap-2 cursor-pointer hover:border-indigo-500/50 transition select-none">
+                            <span class="text-indigo-400">#</span> 
+                            <span class="cat-text">{{ $category->name }}</span>
                         </h2>
+
+                        <!-- Mode Édition (l'input masqué par défaut) -->
+                        <input 
+                            type="text" 
+                            value="{{ $category->name }}" 
+                            data-category-id="{{ $category->id }}"
+                            data-update-url="{{ route('board.category.update', $category->id) }}"
+                            class="category-name-input hidden h-[25px] text-xs font-extrabold text-white tracking-wider uppercase bg-[#0b0d12] px-3 rounded-md border border-indigo-500 focus:outline-none w-full"
+                        >
 
                         <!-- Ligne horizontale de séparation au milieu -->
                         <div class="h-[1px] bg-gray-000 flex-grow"></div>
@@ -272,146 +282,230 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-    const containers = document.querySelectorAll('.board-container');
 
-    containers.forEach(container => {
-        new Sortable(container, {
-            group: 'boards-group',
-            animation: 150,
-            handle: '.board-handle',
-            ghostClass: 'opacity-40',
+        // 1. Activer le mode édition au clic sur le nom de la catégorie
+        document.querySelectorAll('.category-name-display').forEach(displayEl => {
+            displayEl.addEventListener('click', function() {
+                // On cherche le conteneur parent global (la div ou le header)
+                const wrapper = this.closest('.category-wrapper') || this.parentElement;
+                if (!wrapper) return;
 
-            onAdd: function (evt) {
-                const boardCard = evt.item.closest('[data-board-id]') || evt.item;
-                const boardId = boardCard.dataset.boardId; 
-                const targetContainer = evt.to; 
-                const newTag = targetContainer.dataset.tag; 
-
-                if (!boardId) {
-                    console.error("Erreur : boardId est introuvable sur l'élément !", evt.item);
-                    return;
+                const displayH2 = wrapper.querySelector('.category-name-display');
+                const inputField = wrapper.querySelector('.category-name-input');
+                
+                if (displayH2 && inputField) {
+                    displayH2.classList.add('hidden');
+                    inputField.classList.remove('hidden');
+                    inputField.focus();
+                    inputField.select(); // Sélectionne tout le texte pour aller plus vite
                 }
+            });
+        });
 
-                // On passe targetContainer en paramètre ici
-                updateBoardTag(boardId, newTag, boardCard, targetContainer);
+        // 2. Gérer la sauvegarde (touche Entrée ou perte de focus)
+        document.querySelectorAll('.category-name-input').forEach(inputEl => {
+            inputEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveCategoryName(this);
+                } else if (e.key === 'Escape') {
+                    cancelCategoryEdit(this);
+                }
+            });
+
+            inputEl.addEventListener('blur', function() {
+                saveCategoryName(this);
+            });
+        });
+
+        const containers = document.querySelectorAll('.board-container');
+
+        containers.forEach(container => {
+            new Sortable(container, {
+                group: 'boards-group',
+                animation: 150,
+                handle: '.board-handle',
+                ghostClass: 'opacity-40',
+
+                onAdd: function (evt) {
+                    const boardCard = evt.item.closest('[data-board-id]') || evt.item;
+                    const boardId = boardCard.dataset.boardId; 
+                    const targetContainer = evt.to; 
+                    const newTag = targetContainer.dataset.tag; 
+
+                    if (!boardId) {
+                        console.error("Erreur : boardId est introuvable sur l'élément !", evt.item);
+                        return;
+                    }
+
+                    updateBoardTag(boardId, newTag, boardCard, targetContainer);
+                }
+            });
+        });
+
+        // --- GESTION DU CLIC SUR LA CROIX DE SUPPRESSION ---
+        document.addEventListener('click', function (event) {
+            const deleteBtn = event.target.closest('.category-delete-btn');
+            if (!deleteBtn) return;
+
+            const categoryBlock = deleteBtn.closest('.category-block') || deleteBtn.closest('section') || deleteBtn.parentElement.parentElement;
+            if (!categoryBlock) return;
+
+            const container = categoryBlock.querySelector('.board-container');
+            if (!container) return;
+
+            const boardsCount = container.querySelectorAll('[data-board-id]').length;
+            const isEmpty = boardsCount === 0;
+
+            if (!isEmpty) {
+                alert("This category has to be empty to be deleted");
+            } else {
+                deleteBtn.closest('form').submit();
             }
         });
-    });
 
-    // --- GESTION DU CLIC SUR LA CROIX DE SUPPRESSION ---
-    document.addEventListener('click', function (event) {
-        const deleteBtn = event.target.closest('.category-delete-btn');
-        if (!deleteBtn) return;
+        function updateBoardTag(boardId, tag, boardCardElement, targetContainer) {
+            if (!boardId) return;
 
-        const categoryBlock = deleteBtn.closest('.category-block') || deleteBtn.closest('section') || deleteBtn.parentElement.parentElement;
-        if (!categoryBlock) return;
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMeta ? csrfMeta.content : '';
 
-        const container = categoryBlock.querySelector('.board-container');
-        if (!container) return;
+            fetch(`/board/${boardId}/tag`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ tag: tag === "" ? null : tag })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Erreur réseau ou serveur');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    const targetEmptyState = targetContainer.querySelector('.empty-state');
+                    if (targetEmptyState) {
+                        targetEmptyState.remove();
+                    }
 
-        // On compte directement le nombre de cartes de board présentes dans le conteneur
-        const boardsCount = container.querySelectorAll('[data-board-id]').length;
-        const isEmpty = boardsCount === 0;
+                    containers.forEach(container => {
+                        const cards = container.querySelectorAll('[data-board-id]');
+                        const hasEmptyState = container.querySelector('.empty-state');
+                        
+                        const categoryBlock = container.closest('.category-block');
+                        const deleteBtn = categoryBlock ? categoryBlock.querySelector('.category-delete-btn') : null;
 
-        if (!isEmpty) {
-            // Condition 1 : La catégorie contient au moins une board
-            alert("This category has to be empty to be deleted");
-        } else {
-            // Condition 2 : Vide -> on soumet le formulaire de suppression directement
-            deleteBtn.closest('form').submit();
+                        if (cards.length === 0) {
+                            container.dataset.empty = 'true';
+                            if (deleteBtn) deleteBtn.dataset.empty = 'true';
+
+                            if (!hasEmptyState) {
+                                const emptyDiv = document.createElement('div');
+                                emptyDiv.className = 'empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center';
+                                emptyDiv.textContent = 'Drop boards here or assign them from settings';
+                                container.appendChild(emptyDiv);
+                            }
+                        } else {
+                            container.dataset.empty = 'false';
+                            if (deleteBtn) deleteBtn.dataset.empty = 'false';
+
+                            if (hasEmptyState) {
+                                hasEmptyState.remove();
+                            }
+                        }
+                    });
+
+                    const tagBadgeContainer = boardCardElement.querySelector('.board-tag-badge');
+                    const badgeContainer = boardCardElement.querySelector('.flex.items-center.gap-2');
+
+                    if (tag !== "") {
+                        if (tagBadgeContainer) {
+                            tagBadgeContainer.textContent = tag;
+                        } else {
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20';
+                            newBadge.textContent = tag;
+                            if (badgeContainer) {
+                                badgeContainer.prepend(newBadge);
+                            }
+                        }
+                    } else {
+                        if (tagBadgeContainer) {
+                            tagBadgeContainer.remove();
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors du déplacement de la board :', error);
+            });
         }
     });
 
-    // On récupère bien targetContainer en 4ème argument
-    function updateBoardTag(boardId, tag, boardCardElement, targetContainer) {
-        if (!boardId) return;
+    function saveCategoryName(inputEl) {
+        const wrapper = inputEl.closest('.category-wrapper') || inputEl.parentElement;
+        if (!wrapper) return;
 
-        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-        const csrfToken = csrfMeta ? csrfMeta.content : '';
+        const displayH2 = wrapper.querySelector('.category-name-display');
+        const spanText = displayH2 ? displayH2.querySelector('.cat-text') : null;
+        const newName = inputEl.value.trim();
+        const updateUrl = inputEl.dataset.updateUrl;
 
-        fetch(`/board/${boardId}/tag`, {
+        if (!newName || (spanText && newName === spanText.textContent)) {
+            cancelCategoryEdit(inputEl);
+            return;
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+        fetch(updateUrl, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ tag: tag === "" ? null : tag })
+            body: JSON.stringify({ name: newName })
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erreur réseau ou serveur');
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                console.log('Tag mis à jour avec succès !');
-                
-                // 1. Supprime le message vide du conteneur cible s'il existe
-                const targetEmptyState = targetContainer.querySelector('.empty-state');
-                if (targetEmptyState) {
-                    targetEmptyState.remove();
+            if (data.success || data.name) {
+                if (spanText) {
+                    spanText.textContent = newName;
                 }
-
-                // 2. Vérifie tous les conteneurs pour réinsérer le message vide si besoin
-                containers.forEach(container => {
-                    const cards = container.querySelectorAll('[data-board-id]');
-                    const hasEmptyState = container.querySelector('.empty-state');
-                    
-                    // On récupère le bloc de catégorie parent pour trouver son bouton de suppression
-                    const categoryBlock = container.closest('.category-block');
-                    const deleteBtn = categoryBlock ? categoryBlock.querySelector('.category-delete-btn') : null;
-
-                    if (cards.length === 0) {
-                        // Le conteneur est vide
-                        container.dataset.empty = 'true';
-                        if (deleteBtn) deleteBtn.dataset.empty = 'true';
-
-                        // Remet le message vide s'il n'y est plus
-                        if (!hasEmptyState) {
-                            const emptyDiv = document.createElement('div');
-                            emptyDiv.className = 'empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center';
-                            emptyDiv.textContent = 'Drop boards here or assign them from settings';
-                            container.appendChild(emptyDiv);
-                        }
-                    } else {
-                        // Le conteneur n'est plus vide
-                        container.dataset.empty = 'false';
-                        if (deleteBtn) deleteBtn.dataset.empty = 'false';
-
-                        // Supprime le message vide s'il existe
-                        if (hasEmptyState) {
-                            hasEmptyState.remove();
-                        }
-                    }
-                });
-
-                // 3. Mise à jour visuelle du badge de la carte
-                const tagBadgeContainer = boardCardElement.querySelector('.board-tag-badge');
-                const badgeContainer = boardCardElement.querySelector('.flex.items-center.gap-2');
-
-                if (tag !== "") {
-                    if (tagBadgeContainer) {
-                        tagBadgeContainer.textContent = tag;
-                    } else {
-                        const newBadge = document.createElement('span');
-                        newBadge.className = 'board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20';
-                        newBadge.textContent = tag;
-                        if (badgeContainer) {
-                            badgeContainer.prepend(newBadge);
-                        }
-                    }
-                } else {
-                    if (tagBadgeContainer) {
-                        tagBadgeContainer.remove();
-                    }
+                
+                const categoryBlock = wrapper.closest('.category-block');
+                if (categoryBlock) {
+                    categoryBlock.querySelectorAll('.board-tag-badge').forEach(badge => {
+                        badge.textContent = newName;
+                    });
                 }
             }
+            cancelCategoryEdit(inputEl);
         })
         .catch(error => {
-            console.error('Erreur lors du déplacement de la board :', error);
+            console.error('Erreur lors de la mise à jour:', error);
+            cancelCategoryEdit(inputEl);
         });
     }
-});
+
+    function cancelCategoryEdit(inputEl) {
+        const wrapper = inputEl.closest('.category-wrapper') || inputEl.parentElement;
+        if (!wrapper) return;
+
+        const displayH2 = wrapper.querySelector('.category-name-display');
+        const spanText = displayH2 ? displayH2.querySelector('.cat-text') : null;
+        
+        if (spanText) {
+            inputEl.value = spanText.textContent;
+        }
+        inputEl.classList.add('hidden');
+        if (displayH2) {
+            displayH2.classList.remove('hidden');
+        }
+    }
 </script>
