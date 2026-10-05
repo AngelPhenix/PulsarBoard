@@ -133,7 +133,7 @@
                                 </div>
                             </div>
                         @empty
-                            <div class="col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center">
+                            <div class=" empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center">
                                 Drop boards here or assign them from settings
                             </div>
                         @endforelse
@@ -265,91 +265,102 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Sélectionne tous les conteneurs de cartes
-        const containers = document.querySelectorAll('.board-container');
+    const containers = document.querySelectorAll('.board-container');
 
-        containers.forEach(container => {
-            new Sortable(container, {
-                group: 'boards-group', // Permet de faire voyager les cartes entre les différents blocs
-                animation: 150,
-                handle: '.board-handle', // Indique qu'on attrape la carte uniquement par la poignée
-                ghostClass: 'opacity-40', // Effet visuel transparent sur la carte pendant qu'on la déplace
+    containers.forEach(container => {
+        new Sortable(container, {
+            group: 'boards-group',
+            animation: 150,
+            handle: '.board-handle',
+            ghostClass: 'opacity-40',
 
-                // Déclenché quand une carte est déposée dans CE conteneur
-                onAdd: function (evt) {
-                    // On s'assure de trouver l'élément parent qui possède le data-board-id
-                    const boardCard = evt.item.closest('[data-board-id]') || evt.item;
-                    const boardId = boardCard.dataset.boardId; 
-                    
-                    const targetContainer = evt.to; 
-                    const newTag = targetContainer.dataset.tag; 
+            onAdd: function (evt) {
+                const boardCard = evt.item.closest('[data-board-id]') || evt.item;
+                const boardId = boardCard.dataset.boardId; 
+                const targetContainer = evt.to; 
+                const newTag = targetContainer.dataset.tag; 
 
-                    console.log("Board ID récupéré :", boardId); 
-                    console.log("Nouveau tag :", newTag);
-
-                    if (!boardId) {
-                        console.error("Erreur : boardId est introuvable sur l'élément !", evt.item);
-                        return;
-                    }
-
-                    updateBoardTag(boardId, newTag, boardCard);
+                if (!boardId) {
+                    console.error("Erreur : boardId est introuvable sur l'élément !", evt.item);
+                    return;
                 }
-            });
+
+                // On passe targetContainer en paramètre ici
+                updateBoardTag(boardId, newTag, boardCard, targetContainer);
+            }
         });
+    });
 
-        // Fonction pour envoyer la modification à Laravel en AJAX
-        function updateBoardTag(boardId, tag, boardCardElement) {
-            if (!boardId) return;
+    // On récupère bien targetContainer en 4ème argument
+    function updateBoardTag(boardId, tag, boardCardElement, targetContainer) {
+        if (!boardId) return;
 
-            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-            const csrfToken = csrfMeta ? csrfMeta.content : '';
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrfToken = csrfMeta ? csrfMeta.content : '';
 
-            fetch(`/board/${boardId}/tag`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json' // Force Laravel à répondre en JSON
-                },
-                body: JSON.stringify({ tag: tag === "" ? null : tag })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Erreur réseau ou serveur');
+        fetch(`/board/${boardId}/tag`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ tag: tag === "" ? null : tag })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erreur réseau ou serveur');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                console.log('Tag mis à jour avec succès !');
+                
+                // 1. Supprime le message vide du conteneur cible s'il existe
+                const targetEmptyState = targetContainer.querySelector('.empty-state');
+                if (targetEmptyState) {
+                    targetEmptyState.remove();
                 }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    console.log('Tag mis à jour avec succès !');
-                    
-                    const tagBadgeContainer = boardCardElement.querySelector('.board-tag-badge');
-                    const badgeContainer = boardCardElement.querySelector('.flex.items-center.gap-2'); // Conteneur du badge et de l'icône settings
 
-                    if (tag !== "") {
-                        if (tagBadgeContainer) {
-                            // S'il y avait déjà un badge, on change juste son texte
-                            tagBadgeContainer.textContent = tag;
-                        } else {
-                            // S'il n'y avait pas de badge (ex: venait d'Uncategorized), on le crée
-                            const newBadge = document.createElement('span');
-                            newBadge.className = 'board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20';
-                            newBadge.textContent = tag;
-                            if (badgeContainer) {
-                                badgeContainer.prepend(newBadge);
-                            }
-                        }
+                // 2. Vérifie tous les conteneurs pour réinsérer le message vide si besoin
+                containers.forEach(container => {
+                    const cards = container.querySelectorAll('[data-board-id]');
+                    const hasEmptyState = container.querySelector('.empty-state');
+
+                    if (cards.length === 0 && !hasEmptyState) {
+                        const emptyDiv = document.createElement('div');
+                        emptyDiv.className = 'empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center';
+                        emptyDiv.textContent = 'Drop boards here or assign them from settings';
+                        container.appendChild(emptyDiv);
+                    }
+                });
+
+                // 3. Mise à jour visuelle du badge de la carte
+                const tagBadgeContainer = boardCardElement.querySelector('.board-tag-badge');
+                const badgeContainer = boardCardElement.querySelector('.flex.items-center.gap-2');
+
+                if (tag !== "") {
+                    if (tagBadgeContainer) {
+                        tagBadgeContainer.textContent = tag;
                     } else {
-                        // Si on l'a déplacé dans "Uncategorized" (tag vide), on supprime le badge s'il existe
-                        if (tagBadgeContainer) {
-                            tagBadgeContainer.remove();
+                        const newBadge = document.createElement('span');
+                        newBadge.className = 'board-tag-badge text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-medium border border-indigo-500/20';
+                        newBadge.textContent = tag;
+                        if (badgeContainer) {
+                            badgeContainer.prepend(newBadge);
                         }
                     }
+                } else {
+                    if (tagBadgeContainer) {
+                        tagBadgeContainer.remove();
+                    }
                 }
-            })
-            .catch(error => {
-                console.error('Erreur lors du déplacement de la board :', error);
-            });
-        }
-    });
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors du déplacement de la board :', error);
+        });
+    }
+});
 </script>
