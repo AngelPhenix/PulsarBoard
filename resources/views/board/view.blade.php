@@ -69,28 +69,28 @@
         <div class="space-y-10">
             <!-- 1. BOUCLE SUR LES CATÉGORIES (Vides ou pleines) -->
             @foreach ($categories as $category)
-                <div class="bg-[#121620]/30 p-6 rounded-3xl border border-gray-800/50">
+                <div class="category-block bg-[#121620]/30 p-6 rounded-3xl border border-gray-800/50">
                     <!-- En-tête de la catégorie -->
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
                             <h2 class="text-xl font-extrabold text-white tracking-wide uppercase">
                                 {{ $category->name }}
                             </h2>
-                            <span class="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-300 font-semibold border border-gray-700/50">
-                                {{ $category->boards->count() }}
-                            </span>
                         </div>
 
-                        <!-- Croix de suppression (affichée uniquement si la catégorie est vide) -->
-                        @if ($category->boards->isEmpty())
-                            <form action="{{ route('board.category.destroy', $category->id) }}" method="POST" onsubmit="return confirm('Supprimer cette catégorie vide ?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-gray-500 hover:text-red-400 p-2 transition-colors rounded-xl hover:bg-red-500/10" title="Delete category">
-                                    <i class="fas fa-xmark text-sm"></i>
-                                </button>
-                            </form>
-                        @endif
+                        <!-- Croix de suppression -->
+                        <form action="{{ route('board.category.destroy', $category->id) }}" method="POST" class="inline delete-category-form">
+                            @csrf
+                            @method('DELETE')
+                            <button 
+                                type="button" 
+                                class="category-delete-btn text-gray-500 hover:text-red-400 p-1.5 transition rounded-lg hover:bg-white/5"
+                                data-empty="{{ $category->boards->isEmpty() ? 'true' : 'false' }}"
+                                title="Delete category"
+                            >
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </form>
                     </div>
 
                     <!-- ZONE DE DROP POUR LES BOARDS DE CETTE CATÉGORIE -->
@@ -291,6 +291,30 @@
         });
     });
 
+    // --- GESTION DU CLIC SUR LA CROIX DE SUPPRESSION ---
+    document.addEventListener('click', function (event) {
+        const deleteBtn = event.target.closest('.category-delete-btn');
+        if (!deleteBtn) return;
+
+        const categoryBlock = deleteBtn.closest('.category-block') || deleteBtn.closest('section') || deleteBtn.parentElement.parentElement;
+        if (!categoryBlock) return;
+
+        const container = categoryBlock.querySelector('.board-container');
+        if (!container) return;
+
+        // On compte directement le nombre de cartes de board présentes dans le conteneur
+        const boardsCount = container.querySelectorAll('[data-board-id]').length;
+        const isEmpty = boardsCount === 0;
+
+        if (!isEmpty) {
+            // Condition 1 : La catégorie contient au moins une board
+            alert("This category has to be empty to be deleted");
+        } else {
+            // Condition 2 : Vide -> on soumet le formulaire de suppression directement
+            deleteBtn.closest('form').submit();
+        }
+    });
+
     // On récupère bien targetContainer en 4ème argument
     function updateBoardTag(boardId, tag, boardCardElement, targetContainer) {
         if (!boardId) return;
@@ -327,12 +351,32 @@
                 containers.forEach(container => {
                     const cards = container.querySelectorAll('[data-board-id]');
                     const hasEmptyState = container.querySelector('.empty-state');
+                    
+                    // On récupère le bloc de catégorie parent pour trouver son bouton de suppression
+                    const categoryBlock = container.closest('.category-block');
+                    const deleteBtn = categoryBlock ? categoryBlock.querySelector('.category-delete-btn') : null;
 
-                    if (cards.length === 0 && !hasEmptyState) {
-                        const emptyDiv = document.createElement('div');
-                        emptyDiv.className = 'empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center';
-                        emptyDiv.textContent = 'Drop boards here or assign them from settings';
-                        container.appendChild(emptyDiv);
+                    if (cards.length === 0) {
+                        // Le conteneur est vide
+                        container.dataset.empty = 'true';
+                        if (deleteBtn) deleteBtn.dataset.empty = 'true';
+
+                        // Remet le message vide s'il n'y est plus
+                        if (!hasEmptyState) {
+                            const emptyDiv = document.createElement('div');
+                            emptyDiv.className = 'empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center';
+                            emptyDiv.textContent = 'Drop boards here or assign them from settings';
+                            container.appendChild(emptyDiv);
+                        }
+                    } else {
+                        // Le conteneur n'est plus vide
+                        container.dataset.empty = 'false';
+                        if (deleteBtn) deleteBtn.dataset.empty = 'false';
+
+                        // Supprime le message vide s'il existe
+                        if (hasEmptyState) {
+                            hasEmptyState.remove();
+                        }
                     }
                 });
 
