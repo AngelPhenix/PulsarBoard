@@ -25,7 +25,8 @@
                     @if (isset($boardList))
                         @foreach ($boardList as $b)
                             @if (Auth::user()->id != $b->owner_id)
-                            <a class="ui-link {{ request()->is('board/'.$b->id) ? 'is-active' : '' }} justify-between" href="/board/{{$b->id}}">
+                            <!-- Ajout du wildcard /* pour cibler aussi les settings et autres sous-pages -->
+                            <a class="ui-link {{ (request()->is('board/'.$b->id) || request()->is('board/'.$b->id.'/*')) ? 'is-active' : '' }} justify-between" href="/board/{{$b->id}}">
                                 <span class="flex min-w-0 items-center gap-2">
                                     <i class="fa-regular fa-handshake ui-muted"></i>
                                     <span class="truncate">{{ $b->name }}</span>
@@ -45,7 +46,8 @@
                     @if (isset($boardList))                    
                         @foreach ($boardList as $b)
                             @if (Auth::user()->id == $b->owner_id)
-                            <a class="ui-link {{ request()->is('board/'.$b->id) ? 'is-active' : '' }} justify-between" href="/board/{{$b->id}}">
+                            <!-- Idem ici pour les boards dont on est owner -->
+                            <a class="ui-link {{ (request()->is('board/'.$b->id) || request()->is('board/'.$b->id.'/*')) ? 'is-active' : '' }} justify-between" href="/board/{{$b->id}}">
                                 <span class="flex min-w-0 items-center gap-2">
                                     <i class="fa-solid fa-crown text-sky-300"></i>
                                     <span class="truncate">{{ $b->name }}</span>
@@ -70,7 +72,7 @@
         @endauth
     </div>
 
-    <!-- SECTION BASSE : Login/Register (si guest) ou Profile/Logout (si auth) -->
+    <!-- SECTION BASSE -->
     <div class="flex flex-col gap-y-2">
         <div class="ui-divider"></div>
         @guest

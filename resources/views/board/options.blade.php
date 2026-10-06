@@ -1,4 +1,4 @@
-<x-layout :boardList='$boardList ?? null'>
+<x-layout :boardList="$boardList ?? null" :board="$board ?? null" :friends="$friends ?? null">
     <div class="relative space-y-6">
 
         <!-- Un simple conteneur flex : la flèche est toujours dans le flux, bien alignée avec le titre -->

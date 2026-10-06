@@ -29,17 +29,16 @@ class BoardController extends Controller
         ]);
     }
 
-    public function options(Board $board)
+    public function settings(Board $board)
     {
+        // On récupère toutes les infos nécessaires d'un coup
         $boards = Auth::user()->boards;
         $friends = Auth::user()->friends;
-
-        // On récupère les noms des catégories de l'utilisateur pour les suggestions
         $existingTags = Auth::user()->categories()->pluck('name');
 
         return view('board.options', [
             'board' => $board,
-            'boardList' => $boards,
+            'boardList' => $boards, // Indispensable pour la sidebar !
             'friends' => $friends,
             'existingTags' => $existingTags,
         ]);
@@ -174,16 +173,6 @@ class BoardController extends Controller
 
         // Sinon (formulaire classique), on redirige proprement sur la page des settings
         return redirect()->back()->with(['success' => 'Tag updated successfully.']);
-    }
-
-    public function settings(Board $board)
-    {
-        $friends = Auth::user()->friends;
-
-        // Idem ici
-        $existingTags = Auth::user()->categories()->pluck('name');
-
-        return view('board.options', compact('board', 'friends', 'existingTags'));
     }
 
     public function toggleBoardTags()

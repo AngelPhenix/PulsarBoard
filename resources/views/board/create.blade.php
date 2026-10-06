@@ -12,7 +12,7 @@
                 <!-- Nom du Board -->
                 <div class="ui-field">
                     <label class="ui-label" for="name">Board name</label>
-                    <input class="ui-input" type="text" name="name" id="name" placeholder="e.g. Sprint Planning" autocomplete="off" value="{{ old('name') }}" />
+                    <input class="ui-input" type="text" name="name" id="name" placeholder="e.g. Sprint Planning" autocomplete="off" autofocus value="{{ old('name') }}" />
                     <x-form-error fieldname='name'/>
                 </div>
 
