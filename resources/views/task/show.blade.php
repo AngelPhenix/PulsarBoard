@@ -13,29 +13,30 @@
         @endif
 
         <div class="relative flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <!-- Flèche de retour positionnée en absolute (hors du flux, ne décale rien) -->
-            <a href="{{ route('board.view') }}" class="absolute -left-14 top-0 w-10 h-10 bg-gray-900 hover:bg-gray-600 border border-gray-700 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition shadow-lg" title="Back to boards">
-                <i class="fas fa-arrow-left text-xs"></i>
-            </a>
+            <div class="flex items-start gap-4">
+                <a href="{{ route('board.view') }}" class="shrink-0 w-10 h-10 bg-gray-900 hover:bg-gray-600 border border-gray-700 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition shadow-lg" title="Back to boards">
+                    <i class="fas fa-arrow-left text-xs"></i>
+                </a>
 
-            <div class="min-w-0">
-                <div class="ui-caption">Board</div>
-                <h1 class="ui-h1 truncate">{{ $board->name }}</h1>
-                <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="ui-caption mr-1">Collaborators</span>
-                    @foreach ($board->users as $user)
-                        @if ($user->username == $board->owner->username)
-                            <span class="ui-chip border-white/10 bg-white/5">
-                                <i class="fa-solid fa-crown text-sky-300"></i>
-                                <span class="font-semibold">{{ $user->username }}</span>
-                            </span>
-                        @else
-                            <span class="ui-chip">
-                                <i class="fa-regular fa-user ui-muted"></i>
-                                <span>{{ $user->username }}</span>
-                            </span>
-                        @endif
-                    @endforeach
+                <div class="min-w-0">
+                    <div class="ui-caption">Board</div>
+                    <h1 class="ui-h1 truncate">{{ $board->name }}</h1>
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <span class="ui-caption mr-1">Collaborators</span>
+                        @foreach ($board->users as $user)
+                            @if ($user->username == $board->owner->username)
+                                <span class="ui-chip border-white/10 bg-white/5">
+                                    <i class="fa-solid fa-crown text-sky-300"></i>
+                                    <span class="font-semibold">{{ $user->username }}</span>
+                                </span>
+                            @else
+                                <span class="ui-chip">
+                                    <i class="fa-regular fa-user ui-muted"></i>
+                                    <span>{{ $user->username }}</span>
+                                </span>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
