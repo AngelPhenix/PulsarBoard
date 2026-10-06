@@ -1,8 +1,14 @@
 <x-layout :boardList='$boardList ?? null'>
-    <div class="space-y-6">
+    <div class="relative space-y-6">
+
+        <!-- Flèche de retour positionnée en absolute (hors du flux, ne décale rien) -->
+        <a href="{{ route('board.show', $board->id) }}" class="absolute -left-14 top-0 w-10 h-10 bg-gray-900 hover:bg-gray-600 border border-gray-700 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition shadow-lg" title="Back to boards">
+            <i class="fas fa-arrow-left text-xs"></i>
+        </a>
+    
         <div>
-            <div class="ui-caption">Settings</div>
-            <h1 class="ui-h1"><span class="ui-muted">{{ $board->name }}</span> board</h1>
+            <div class="ui-caption">Board settings</div>
+            <h1 class="ui-h1"><span class="ui-muted">{{ $board->name }}</span></h1>
         </div>
 
         @if (session('board_renamed'))
