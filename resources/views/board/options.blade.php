@@ -155,18 +155,64 @@
         @endcan
 
         @can('delete', $board)
-            <div class="ui-card p-5 border border-red-500/20">
+            <!-- On initialise un état Alpine pour gérer l'ouverture de la modale et la saisie de l'utilisateur -->
+            <div class="ui-card p-5 border border-red-500/20" x-data="{ openModal: false, confirmName: '' }">
                 <div class="ui-h2">Danger zone</div>
                 <div class="ui-caption mt-1">Deleting a board is permanent.</div>
 
-                <form method="post" action="/delete_board/{{$board->id}}" class="mt-4">
-                    @csrf
-                    @method('DELETE')
-                    <button class="ui-btn ui-btn-danger" type="submit">
+                <div class="mt-4">
+                    <button @click="openModal = true" class="ui-btn ui-btn-danger" type="button">
                         <i class="fa-solid fa-triangle-exclamation"></i>
                         <span>Delete this board</span>
                     </button>
-                </form>
+                </div>
+
+                <!-- MODALE DE CONFIRMATION -->
+                <div x-show="openModal" 
+                    style="display: none;"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+                    @keydown.escape.window="openModal = false">
+                    
+                    <div @click.away="openModal = false" class="bg-[#121620] border border-gray-800 rounded-3xl p-6 max-w-md w-full mx-4 shadow-2xl space-y-4">
+                        <div class="flex items-center gap-3 text-red-400">
+                            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                            <h3 class="text-lg font-bold text-white">Delete Board ?</h3>
+                        </div>
+
+                        <p class="text-xs text-gray-300 leading-relaxed">
+                            This action is irreversible. Please type <span class="font-bold text-white bg-white/10 px-1.5 py-0.5 rounded select-all">{{ $board->name }}</span> to confirm.
+                        </p>
+
+                        <form method="post" action="/delete_board/{{ $board->id }}" class="space-y-4">
+                            @csrf
+                            @method('DELETE')
+
+                            <div>
+                                <input type="text" 
+                                    x-model="confirmName" 
+                                    placeholder="Type the board name here..." 
+                                    class="ui-input w-full" 
+                                    autocomplete="off" />
+                            </div>
+
+                            <div class="flex items-center justify-end gap-3 pt-2">
+                                <button type="button" 
+                                        @click="openModal = false; confirmName = ''" 
+                                        class="ui-btn bg-gray-800 text-gray-300 hover:bg-gray-700">
+                                    Cancel
+                                </button>
+
+                                <!-- Le bouton de suppression est désactivé (disabled) tant que le texte tapé ne correspond pas exactement au nom de la board -->
+                                <button type="submit" 
+                                        :disabled="confirmName !== @js($board->name)"
+                                        :class="confirmName === @js($board->name) ? 'opacity-150 cursor-pointer' : 'opacity-40 cursor-not-allowed'"
+                                        class="ui-btn ui-btn-danger transition-opacity">
+                                    Yes, delete it
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         @endcan
     </div>
