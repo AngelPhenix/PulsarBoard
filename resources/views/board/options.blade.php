@@ -6,14 +6,14 @@
             <i class="fas fa-arrow-left text-xs"></i>
         </a>
     
-        <div>
+        <div class="!mt-0">
             <div class="ui-caption">Board settings</div>
             <h1 class="ui-h1"><span class="ui-muted">{{ $board->name }}</span></h1>
         </div>
 
-        @if (session('board_renamed'))
+        @if (session('success'))
             <div class="ui-card-soft p-3 border border-sky-500/25 text-sky-200 text-sm">
-                {{ session('board_renamed') }}
+                {{ session('success') }}
             </div>
         @endif
 

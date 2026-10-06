@@ -140,7 +140,7 @@ class BoardController extends Controller
             'name' => $attributes['name']
         ]);
 
-        return redirect()->back()->with(['board_renamed' => 'Board renamed successfully.']);
+        return redirect()->back()->with(['success' => 'Board renamed successfully.']);
     }
 
     public function updateTag(Request $request, Board $board)
@@ -164,7 +164,16 @@ class BoardController extends Controller
             'category_id' => $categoryId
         ]);
 
-        return response()->json(['success' => true]);
+        // Si la requête vient d'un fetch (AJAX), on renvoie du JSON
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'name' => $board->category?->name
+            ]);
+        }
+
+        // Sinon (formulaire classique), on redirige proprement sur la page des settings
+        return redirect()->back()->with(['success' => 'Tag updated successfully.']);
     }
 
     public function settings(Board $board)
