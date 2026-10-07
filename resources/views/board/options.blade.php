@@ -85,75 +85,25 @@
         @endcan
 
         @can('addFriend', $board)
-            <div class="ui-card p-5">
-                <div class="ui-h2">Collaborators</div>
-                <div class="ui-caption mt-1">Invite one of your friends to this board.</div>
-
-                <form method="post" action="/board_addfriend/{{$board->id}}" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-                    @csrf
-                    <div class="ui-field flex-1">
-                        <label class="ui-label" for="mail">Friend</label>
-                        @php
-                            $firstFriend = $friends->first();
-                        @endphp
-
-                        <div
-                            class="relative"
-                            x-data="{
-                                open: false,
-                                selectedLabel: @js($firstFriend?->username ?? 'No friends available'),
-                                selectedValue: @js($firstFriend?->email ?? ''),
-                                select(label, value) { this.selectedLabel = label; this.selectedValue = value; this.open = false; },
-                            }"
-                        >
-                            <input type="hidden" name="mail" :value="selectedValue">
-
-                            <button
-                                type="button"
-                                class="ui-select flex items-center justify-between gap-3 text-left"
-                                :class="selectedValue ? '' : 'opacity-60 cursor-not-allowed'"
-                                @click="if (selectedValue) open = !open"
-                            >
-                                <span class="truncate" x-text="selectedLabel"></span>
-                                <i class="fa-solid fa-chevron-down ui-muted text-xs"></i>
-                            </button>
-
-                            <div
-                                x-show="open"
-                                x-transition
-                                @click.outside="open = false"
-                                class="absolute z-50 mt-2 w-full ui-card-soft p-1 backdrop-blur"
-                            >
-                                <div class="max-h-64 overflow-auto">
-                                    @foreach ($friends as $friend)
-                                        <button
-                                            type="button"
-                                            class="w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-white/5"
-                                            :class="selectedValue === @js($friend->email) ? 'bg-sky-400/10 border border-sky-400/20' : 'border border-transparent'"
-                                            @click="select(@js($friend->username), @js($friend->email))"
-                                        >
-                                            <div class="flex items-center justify-between gap-3">
-                                                <span class="truncate">{{ $friend->username }}</span>
-                                                <span class="ui-caption truncate">{{ $friend->email }}</span>
-                                            </div>
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="ui-btn ui-btn-neon sm:shrink-0" type="submit">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Add collaborator</span>
+            <div class="ui-card p-6 space-y-4" x-data="{ copied: false }">
+                <h2 class="text-lg font-semibold text-white">Invite Collaborators</h2>
+                <p class="text-sm text-gray-400">Anyone with this link will be able to join this board as a collaborator.</p>
+                
+                <div class="flex gap-2">
+                    <input type="text" readonly value="{{ route('board.join', $board->invite_token) }}" 
+                        class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 text-sm text-gray-300" />
+                    
+                    <button type="button" 
+                            @click="
+                                navigator.clipboard.writeText('{{ route('board.join', $board->invite_token) }}');
+                                copied = true;
+                                setTimeout(() => copied = false, 2000);
+                            "
+                            class="ui-btn ui-btn-neon shrink-0 flex items-center gap-2">
+                        <i class="fa-solid" :class="copied ? 'fa-check text-green-400' : 'fa-copy'"></i>
+                        <span x-text="copied ? 'Copied!' : 'Copy link'"></span>
                     </button>
-                </form>
-
-                @if (session('user_added'))
-                    <div class="mt-3 ui-card-soft p-3 border border-red-500/30 text-red-300 text-sm">
-                        {{ session('user_added') }}
-                    </div>
-                @endif
+                </div>
             </div>
         @endcan
 

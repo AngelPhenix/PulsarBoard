@@ -19,7 +19,6 @@ Route::get('/boards', [BoardController::class, 'index'])->middleware('auth')->na
 Route::get('/board_create', [BoardController::class, 'create'])->middleware('auth');
 Route::post('/board', [BoardController::class, 'store'])->middleware('auth');
 Route::patch('/board/{board}', [BoardController::class, 'rename'])->middleware(['auth', 'can:delete,board'])->name('board.rename');
-Route::post('/board_addfriend/{board}', [BoardController::class, 'addFriend'])->middleware(['auth', 'can:addFriend,board']);
 Route::delete('/delete_board/{board}', [BoardController::class, 'destroy'])->middleware(['auth', 'can:delete,board']);
 Route::patch('/user/toggle-board-tags', [BoardController::class, 'toggleBoardTags'])->name('user.toggle-board-tags');
 Route::patch('/board/{board}/toggle-task-tags', [BoardController::class, 'toggleTaskTags'])->name('board.toggle-task-tags');
@@ -28,6 +27,7 @@ Route::patch('/board/{board}/tag', [BoardController::class, 'updateTag'])->name(
 Route::get('/board/{board}/settings', [BoardController::class, 'settings'])->name('settings');
 Route::delete('/board/category/{category}', [BoardController::class, 'destroyCategory'])->middleware('auth')->name('board.category.destroy');
 Route::patch('/board/category/{category}', [BoardController::class, 'updateCategoryManually'])->name('board.category.update');
+Route::get('/board/invite/{token}', [BoardController::class, 'joinBoard'])->middleware('auth')->name('board.join');
 
 Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'create']);

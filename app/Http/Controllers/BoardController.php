@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 use function Pest\Laravel\delete;
 
@@ -85,6 +86,7 @@ class BoardController extends Controller
             'name' => $attributes['name'],
             'category_id' => $categoryId,
             'owner_id' => Auth::id(),
+            'invite_token' => Str::uuid(),
         ];
         
         $board = Board::create($boardAttributes);
@@ -236,6 +238,18 @@ class BoardController extends Controller
         $category->delete();
 
         return back()->with('success', 'Catégorie supprimée.');
+    }
+
+    public function joinBoard($token)
+    {
+        $board = Board::where('invite_token', $token)->firstOrFail();
+
+        if (!$board->users->contains(Auth::id()) && $board->owner_id !== Auth::id()) {
+            $board->users()->attach(Auth::id());
+        }
+
+        return redirect()->route('board.show', $board->id)
+            ->with('success', 'You have successfully joined the board!');
     }
 
     public function destroy(Board $board)
