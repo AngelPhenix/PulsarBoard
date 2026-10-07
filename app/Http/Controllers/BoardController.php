@@ -59,7 +59,8 @@ class BoardController extends Controller
     public function create()
     {
         return view('board.create', [
-            'boardList' => Auth::user()->boards
+            'boardList' => Auth::user()->boards,
+            'existingTags' => Auth::user()->categories()->pluck('name'),
         ]);
     }
 
@@ -76,8 +77,10 @@ class BoardController extends Controller
         // Gestion de la catégorie à partir du champ "tag" du formulaire de création
         $categoryId = null;
         if (!empty($attributes['tag'])) {
+            $normalizedTagName = mb_strtolower(trim($attributes['tag']));
+            
             $category = Auth::user()->categories()->firstOrCreate([
-                'name' => trim($attributes['tag'])
+                'name' => $normalizedTagName
             ]);
             $categoryId = $category->id;
         }
@@ -131,19 +134,20 @@ class BoardController extends Controller
         $categoryId = null;
 
         if ($request->filled('tag')) {
-            // On cherche ou on crée la catégorie pour l'utilisateur connecté
+            // Normalisation stricte pour SQLite
+            $normalizedName = mb_strtolower(trim($request->tag));
+
             $category = Auth::user()->categories()->firstOrCreate([
-                'name' => trim($request->tag)
+                'name' => $normalizedName
             ]);
+            
             $categoryId = $category->id;
         }
 
-        // On met à jour le board avec le category_id
         $board->update([
             'category_id' => $categoryId
         ]);
 
-        // Si la requête vient d'un fetch (AJAX), on renvoie du JSON
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -151,7 +155,6 @@ class BoardController extends Controller
             ]);
         }
 
-        // Sinon (formulaire classique), on redirige proprement sur la page des settings
         return redirect()->back()->with(['success' => 'Tag updated successfully.']);
     }
 
@@ -178,9 +181,13 @@ class BoardController extends Controller
     {
         $request->validate(['name' => 'required|string|max:255']);
 
-        Auth::user()->categories()->create([
-            'name' => $request->name
-        ]);
+        // Normalisation : on nettoie les espaces et on met tout en minuscules
+        $normalizedName = mb_strtolower(trim($request->name));
+
+        $category = Auth::user()->categories()->firstOrCreate(
+            ['name' => $normalizedName],
+            ['name' => $normalizedName] // Tu peux garder le nom original si tu ajoutes un champ 'display_name', mais tout en minuscules évite 100% des doublons
+        );
 
         return back()->with('success', 'Catégorie créée avec succès !');
     }
@@ -191,8 +198,23 @@ class BoardController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
+        $normalizedName = mb_strtolower(trim($request->name));
+
+        // On vérifie si l'utilisateur a déjà une *autre* catégorie avec ce nom normalisé
+        $exists = Auth::user()->categories()
+            ->where('name', $normalizedName)
+            ->where('id', '!=', $category->id)
+            ->exists();
+
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Une catégorie avec ce nom existe déjà.'
+            ], 422);
+        }
+
         $category->update([
-            'name' => $request->name
+            'name' => $normalizedName
         ]);
 
         return response()->json([

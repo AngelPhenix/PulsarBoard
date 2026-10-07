@@ -405,3 +405,6 @@ input[type="checkbox"] {
   border-radius: 10px;
 }
 
+[x-cloak] { 
+  display: none !important; 
+}
