@@ -77,10 +77,10 @@ class BoardController extends Controller
         // Gestion de la catégorie à partir du champ "tag" du formulaire de création
         $categoryId = null;
         if (!empty($attributes['tag'])) {
-            $normalizedTagName = mb_strtolower(trim($attributes['tag']));
+            $formattedTagName = ucwords(mb_strtolower(trim($attributes['tag'])));
             
             $category = Auth::user()->categories()->firstOrCreate([
-                'name' => $normalizedTagName
+                'name' => $formattedTagName
             ]);
             $categoryId = $category->id;
         }
@@ -135,10 +135,10 @@ class BoardController extends Controller
 
         if ($request->filled('tag')) {
             // Normalisation stricte pour SQLite
-            $normalizedName = mb_strtolower(trim($request->tag));
+            $formattedName = ucwords(mb_strtolower(trim($request->tag)));
 
             $category = Auth::user()->categories()->firstOrCreate([
-                'name' => $normalizedName
+                'name' => $formattedName
             ]);
             
             $categoryId = $category->id;
@@ -181,12 +181,11 @@ class BoardController extends Controller
     {
         $request->validate(['name' => 'required|string|max:255']);
 
-        // Normalisation : on nettoie les espaces et on met tout en minuscules
-        $normalizedName = mb_strtolower(trim($request->name));
+        $formattedName = ucwords(mb_strtolower(trim($request->name)));
 
         $category = Auth::user()->categories()->firstOrCreate(
-            ['name' => $normalizedName],
-            ['name' => $normalizedName] // Tu peux garder le nom original si tu ajoutes un champ 'display_name', mais tout en minuscules évite 100% des doublons
+            ['name' => $formattedName],
+            ['name' => $formattedName] // Tu peux garder le nom original si tu ajoutes un champ 'display_name', mais tout en minuscules évite 100% des doublons
         );
 
         return back()->with('success', 'Catégorie créée avec succès !');
@@ -198,11 +197,11 @@ class BoardController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $normalizedName = mb_strtolower(trim($request->name));
+        $formattedName = ucwords(mb_strtolower(trim($request->name)));
 
         // On vérifie si l'utilisateur a déjà une *autre* catégorie avec ce nom normalisé
         $exists = Auth::user()->categories()
-            ->where('name', $normalizedName)
+            ->where('name', $formattedName)
             ->where('id', '!=', $category->id)
             ->exists();
 
@@ -214,7 +213,7 @@ class BoardController extends Controller
         }
 
         $category->update([
-            'name' => $normalizedName
+            'name' => $formattedName
         ]);
 
         return response()->json([
