@@ -474,14 +474,17 @@
         .then(response => response.json())
         .then(data => {
             if (data.success || data.name) {
+                // On utilise data.name (le format propre du serveur) au lieu de newName
+                const formattedName = data.name || newName;
+
                 if (spanText) {
-                    spanText.textContent = newName;
+                    spanText.textContent = formattedName;
                 }
                 
                 const categoryBlock = wrapper.closest('.category-block');
                 if (categoryBlock) {
                     categoryBlock.querySelectorAll('.board-tag-badge').forEach(badge => {
-                        badge.textContent = newName;
+                        badge.textContent = formattedName;
                     });
                 }
             }
