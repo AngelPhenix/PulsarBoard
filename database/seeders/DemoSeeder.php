@@ -10,6 +10,7 @@ use App\Models\Category;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DemoSeeder extends Seeder
 {
@@ -62,6 +63,7 @@ class DemoSeeder extends Seeder
             'owner_id' => $recruiter->id,
             'category_id' => $catTravail->id,
             'show_task_tags' => true,
+            'invite_token' => Str::uuid(),
         ]);
         $boardBackend->users()->attach($recruiter->id);
 
@@ -96,6 +98,7 @@ class DemoSeeder extends Seeder
             'owner_id' => $recruiter->id,
             'category_id' => $catPersonnel->id,
             'show_task_tags' => false,
+            'invite_token' => Str::uuid(),
         ]);
         $boardFrontend->users()->attach($recruiter->id);
 
@@ -126,6 +129,7 @@ class DemoSeeder extends Seeder
             'owner_id' => $recruiter->id,
             'category_id' => $catTravail->id,
             'show_task_tags' => true,
+            'invite_token' => Str::uuid(),
         ]);
         $boardDevops->users()->attach($recruiter->id);
 
