@@ -28,6 +28,7 @@ Route::get('/board/{board}/settings', [BoardController::class, 'settings'])->nam
 Route::delete('/board/category/{category}', [BoardController::class, 'destroyCategory'])->middleware('auth')->name('board.category.destroy');
 Route::patch('/board/category/{category}', [BoardController::class, 'updateCategoryManually'])->name('board.category.update');
 Route::get('/board/invite/{token}', [BoardController::class, 'joinBoard'])->middleware('auth')->name('board.join');
+Route::delete('/board/{board}/leave', [BoardController::class, 'leaveBoard'])->middleware('auth')->name('board.leave');
 
 Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'create']);

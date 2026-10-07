@@ -51,12 +51,23 @@
                     </button>
                 </form>
 
-                @can('delete', $board)
+                @if ($board->owner_id === Auth::id())
+                    <!-- Le propriétaire accède aux settings -->
                     <a href="{{ route('settings', ['board' => $board->id]) }}" class="ui-btn ui-btn-neon">
                         <i class="fa-solid fa-gear"></i>
                         <span class="hidden sm:inline">Settings</span>
                     </a>
-                @endcan
+                @else
+                    <!-- Le collaborateur peut quitter la board -->
+                    <form action="{{ route('board.leave', $board->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to leave this board?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="ui-btn ui-btn-danger flex items-center gap-2">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span class="hidden sm:inline">Leave board</span>
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
 

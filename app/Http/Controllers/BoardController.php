@@ -230,6 +230,20 @@ class BoardController extends Controller
             ->with('success', 'You have successfully joined the board!');
     }
 
+    public function leaveBoard(Board $board)
+    {
+        // Sécurité : Un propriétaire ne peut pas "quitter" sa propre board de cette façon
+        if ($board->owner_id === Auth::id()) {
+            return redirect()->route('board.show', $board->id)
+                ->with('error', 'As the owner, you cannot leave your own board.');
+        }
+
+        // On retire l'utilisateur de la table pivot
+        $board->users()->detach(Auth::id());
+
+        return redirect('/')->with('success', 'You have left the board successfully.');
+    }
+
     public function destroy(Board $board)
     {
         $board->delete();
