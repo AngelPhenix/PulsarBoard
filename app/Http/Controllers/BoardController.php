@@ -109,28 +109,6 @@ class BoardController extends Controller
         return redirect('/boards');
     }
 
-    // When adding new collaborator, check for his email and add it to the board_user pivot table
-    public function addFriend(Request $request, Board $board)
-    {
-        $attributes = $request->validate([
-            'mail' => ['required', 'email']
-        ]);
-
-        $user = User::where('email', $attributes['mail'])->first();
-
-        if(!$user){
-            return redirect()->back()->with(['user_added' => "The mail doesn't corresponds to any user."]);
-        }
-
-        if($board->users->doesntContain($user)) {
-            $board->users()->attach($user);
-        }else{
-            return redirect()->back()->with(['user_added' => "This user is already a collaborator on this board"]);
-        }
-
-        return redirect('/board/'. $board->id);
-    }
-
     public function rename(Request $request, Board $board)
     {
         $attributes = $request->validate([
