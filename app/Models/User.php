@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'show_board_tags',
+        'sidebar_collapsed',
     ];
 
     /**

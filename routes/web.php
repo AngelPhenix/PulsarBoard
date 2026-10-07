@@ -6,7 +6,7 @@ use App\Http\Controllers\LabelController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\TaskController;
-use App\Http\Controllers\FriendController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/post_task/{board}', [TaskController::class, 'store'])->middleware(['auth', 'can:update,board'])->name('post_action');
@@ -30,6 +30,8 @@ Route::patch('/board/category/{category}', [BoardController::class, 'updateCateg
 Route::get('/board/invite/{token}', [BoardController::class, 'joinBoard'])->middleware('auth')->name('board.join');
 Route::delete('/board/{board}/leave', [BoardController::class, 'leaveBoard'])->middleware('auth')->name('board.leave');
 
+
+
 Route::get('/register', [RegisterController::class, 'index']);
 Route::post('/register', [RegisterController::class, 'create']);
 
@@ -45,4 +47,4 @@ Route::patch('delete_label/{label}/from_task/{task}', [LabelController::class, '
 
 Route::get('/profile', [SessionController::class, 'profile'])->middleware('auth');
 
-Route::post('/addfriend', [FriendController::class, 'store'])->middleware('auth');
+Route::post('/user/sidebar-preference', [UserController::class, 'updateSidebar'])->middleware('auth')->name('user.sidebar');
