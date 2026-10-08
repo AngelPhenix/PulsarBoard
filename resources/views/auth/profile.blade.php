@@ -1,5 +1,5 @@
 <x-layout :boardList='$boardList ?? null'>
-    <div class="mx-auto max-w-2xl space-y-8 pb-12">
+    <div class="space-y-6">
         
         <!-- Header -->
         <div class="flex items-start gap-4">
