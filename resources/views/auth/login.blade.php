@@ -16,6 +16,9 @@
                 <div class="ui-field">
                     <label class="ui-label" for="password">Password</label>
                     <input class="ui-input" type="password" id="password" name="password" autocomplete="current-password" />
+                    <a href="{{ route('password.request') }}" class="text-xs text-indigo-400 hover:underline">
+                        Forgot your password?
+                    </a>
                 </div>
 
                 <button class="ui-btn ui-btn-neon w-full" type="submit">
