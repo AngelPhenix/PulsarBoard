@@ -18,9 +18,7 @@ class BoardController extends Controller
         $user = Auth::user();
         
         // On trie les boards par position de manière ascendante
-        $categories = $user->categories()->with(['boards' => function ($query) {
-            $query->orderBy('position', 'asc');
-        }])->get();
+        $categories = $user->categories()->with('boards')->get();
 
         // Pareil pour les boards sans catégorie
         $uncategorizedBoards = $user->boards()
