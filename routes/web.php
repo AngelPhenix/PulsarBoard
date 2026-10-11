@@ -19,7 +19,7 @@ Route::get('/board/{board}', [TaskController::class, 'show'])->middleware(['auth
 
 Route::get('/', [BoardController::class, 'welcome']);
 Route::get('/boards', [BoardController::class, 'index'])->middleware('auth')->name('board.view');
-Route::get('/board_create', [BoardController::class, 'create'])->middleware('auth');
+Route::get('/board_create', [BoardController::class, 'create'])->middleware('auth')->name('board.create');
 Route::post('/board', [BoardController::class, 'store'])->middleware('auth');
 Route::patch('/board/{board}', [BoardController::class, 'rename'])->middleware(['auth', 'can:delete,board'])->name('board.rename');
 Route::delete('/delete_board/{board}', [BoardController::class, 'destroy'])->middleware(['auth', 'can:delete,board']);

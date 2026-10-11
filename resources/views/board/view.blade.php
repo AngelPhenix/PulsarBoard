@@ -72,7 +72,7 @@
 
                     <!-- ZONE DE DROP POUR LES BOARDS DE CETTE CATÉGORIE -->
                     <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px] mt-2" data-tag="{{ $category->name }}">
-                        @forelse ($category->boards as $board)
+                        @foreach ($category->boards as $board)
                             <!-- LA CARTE DE BOARD -->
                             <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200 cursor-pointer" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
                                 
@@ -109,11 +109,17 @@
                                     </span>
                                 </div>
                             </div>
-                        @empty
-                            <div class="empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center">
-                                Drop boards here or assign them from settings
+                        @endforeach
+
+                        <!-- ➕ NOUVEAU BOUTON D'AJOUT POUR CETTE CATÉGORIE -->
+                        <a href="{{ route('board.create', ['category' => $category->name]) }}" 
+                        class="bg-[#121620]/50 hover:bg-[#121620] rounded-2xl border-2 border-dashed border-gray-800 hover:border-indigo-500/50 flex flex-col items-center justify-center py-10 text-gray-500 hover:text-indigo-400 transition-all duration-200 group"
+                        title="Create a board in {{ $category->name }}">
+                            <div class="w-10 h-10 rounded-xl bg-gray-800/50 group-hover:bg-indigo-500/10 flex items-center justify-center transition-colors mb-2">
+                                <i class="fas fa-plus text-xs"></i>
                             </div>
-                        @endforelse
+                            <span class="text-xs font-semibold uppercase tracking-wider">Add board</span>
+                        </a>
                     </div>
                 </div>
             @endforeach
@@ -326,6 +332,7 @@
                 animation: 150,
                 handle: '.board-handle',
                 ghostClass: 'opacity-40',
+                draggable: '[data-board-id]',
 
                 onAdd: function (evt) {
                     const boardCard = evt.item.closest('[data-board-id]') || evt.item;
@@ -402,13 +409,6 @@
                         if (cards.length === 0) {
                             container.dataset.empty = 'true';
                             if (deleteBtn) deleteBtn.dataset.empty = 'true';
-
-                            if (!hasEmptyState) {
-                                const emptyDiv = document.createElement('div');
-                                emptyDiv.className = 'empty-state col-span-full text-center py-6 text-xs text-gray-500 italic border border-dashed border-gray-800 rounded-2xl flex items-center justify-center';
-                                emptyDiv.textContent = 'Drop boards here or assign them from settings';
-                                container.appendChild(emptyDiv);
-                            }
                         } else {
                             container.dataset.empty = 'false';
                             if (deleteBtn) deleteBtn.dataset.empty = 'false';

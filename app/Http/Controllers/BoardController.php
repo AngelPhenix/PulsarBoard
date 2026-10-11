@@ -56,11 +56,14 @@ class BoardController extends Controller
         return view('welcome');
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $defaultCategory = $request->query('category');
+
         return view('board.create', [
             'boardList' => Auth::user()->boards,
             'existingTags' => Auth::user()->categories()->pluck('name'),
+            'defaultCategory' => $defaultCategory,
         ]);
     }
 

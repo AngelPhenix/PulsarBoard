@@ -1,5 +1,5 @@
 <x-layout :boardList='$boardList ?? null'>
-    <div class="mx-auto max-w-lg space-y-6" x-data="{ tag: @js(old('tag', '')), tasks: [''] }">
+    <div class="mx-auto max-w-lg space-y-6" x-data="{ tag: @js(old('tag', $defaultCategory ?? '')), tasks: [''] }">
         <div class="flex items-start gap-4">
             <a href="{{ route('board.view') }}" class="shrink-0 w-10 h-10 bg-gray-900 hover:bg-gray-600 border border-gray-700 rounded-xl flex items-center justify-center text-gray-400 hover:text-white transition shadow-lg" title="Back to boards">
                 <i class="fas fa-arrow-left text-xs"></i>
@@ -21,7 +21,7 @@
                 <!-- Tag de la board -->
                 <div class="ui-field">
                     <label class="ui-label" for="tag">Tag / Category (optional)</label>
-                    <input class="ui-input" type="text" name="tag" id="tag" x-model="tag" placeholder="e.g. Work, Personal, Hobby..." autocomplete="off" />
+                    <input class="ui-input" type="text" name="tag" id="tag" x-model="tag" value="{{ old('tag', $defaultCategory ?? '') }}" placeholder="e.g. Work, Personal, Hobby..." autocomplete="off" />
                     <x-form-error fieldname='tag'/>
                 </div>
 
