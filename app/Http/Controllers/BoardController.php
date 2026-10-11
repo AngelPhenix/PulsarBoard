@@ -17,11 +17,16 @@ class BoardController extends Controller
     {
         $user = Auth::user();
         
-        // Récupère toutes les catégories de l'utilisateur avec leurs boards associés
-        $categories = $user->categories()->with('boards')->get();
+        // On trie les boards par position de manière ascendante
+        $categories = $user->categories()->with(['boards' => function ($query) {
+            $query->orderBy('position', 'asc');
+        }])->get();
 
-        // Récupère les boards qui n'ont aucune catégorie (les "Uncategorized")
-        $uncategorizedBoards = $user->boards()->whereNull('category_id')->get();
+        // Pareil pour les boards sans catégorie
+        $uncategorizedBoards = $user->boards()
+            ->whereNull('category_id')
+            ->orderBy('position', 'asc')
+            ->get();
 
         return view('board.view', [
             'categories' => $categories,
@@ -266,6 +271,20 @@ class BoardController extends Controller
         $board->users()->detach(Auth::id());
 
         return redirect('/')->with('success', 'You have left the board successfully.');
+    }
+
+    public function updateOrder(Request $request)
+    {
+        $boards = $request->input('boards', []);
+
+        foreach ($boards as $item) {
+            Board::where('id', $item['id'])->update([
+                'category_id' => $item['category_id'],
+                'position' => $item['position'] // Assure-toi d'avoir une colonne 'position' ou 'order' en int
+            ]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function destroy(Board $board)

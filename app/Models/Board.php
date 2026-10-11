@@ -17,6 +17,7 @@ class Board extends Model
         'owner_id',
         'show_task_tags',
         'invite_token',
+        'position',
     ];
 
     public function tasks()

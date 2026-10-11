@@ -71,7 +71,7 @@
                     </div>
 
                     <!-- ZONE DE DROP POUR LES BOARDS DE CETTE CATÉGORIE -->
-                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px] mt-2" data-tag="{{ $category->name }}">
+                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px] mt-2" data-tag="{{ $category->name }}" data-category-id="{{ $category->id }}">
                         @foreach ($category->boards as $board)
                             <!-- LA CARTE DE BOARD -->
                             <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200 cursor-pointer" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
@@ -136,7 +136,7 @@
                         </span>
                     </div>
 
-                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px]" data-tag="">
+                    <div class="board-container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[120px]" data-tag="" data-category-id="">
                         @foreach ($uncategorizedBoards as $board)
                             <!-- Rendu de la carte similaire (ou inclus via un composant partiel) -->
                             <div class="bg-[#121620] rounded-2xl shadow-lg border border-gray-800/80 flex flex-col justify-between overflow-hidden group hover:border-indigo-500/50 transition-all duration-200 cursor-pointer" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
@@ -269,7 +269,7 @@
                     </div>
 
                     {{-- ZONE DE DROP VERTICALE POUR CETTE CATÉGORIE --}}
-                    <div class="board-container space-y-2 min-h-[50px]" data-tag="{{ $category->name }}">
+                    <div class="board-container space-y-2 min-h-[50px]" data-tag="{{ $category->name }}" data-category-id="{{ $category->id }}">
                         @foreach ($category->boards as $board)
                             <div class="bg-[#121620]/60 hover:bg-[#121620] border border-gray-800/80 hover:border-indigo-500/50 rounded-xl px-4 py-3 flex items-center justify-between transition-all duration-200 cursor-pointer group" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
                                 
@@ -331,7 +331,7 @@
                         <div class="h-[1px] bg-gray-800 flex-grow"></div>
                     </div>
 
-                    <div class="board-container space-y-2 min-h-[50px]" data-tag="">
+                    <div class="board-container space-y-2 min-h-[50px]" data-tag="" data-category-id="{{ $category->id }}">
                         @foreach ($uncategorizedBoards as $board)
                             <div class="bg-[#121620]/60 hover:bg-[#121620] border border-gray-800/80 hover:border-indigo-500/50 rounded-xl px-4 py-3 flex items-center justify-between transition-all duration-200 cursor-pointer group" data-board-id="{{ $board->id }}" onclick="window.location.href='/board/{{ $board->id }}'">
                                 
@@ -485,6 +485,34 @@
                     }
 
                     updateBoardTag(boardId, newTag, boardCard, targetContainer);
+                },
+                onEnd: function (evt) {
+                    let orderedBoards = [];
+
+                    // On parcourt chaque conteneur de catégorie
+                    document.querySelectorAll('.board-container').forEach(container => {
+                        // On lit le data-category-id qu'on vient d'ajouter
+                        const categoryId = container.dataset.categoryId || null; 
+
+                        // On parcourt les boards de ce conteneur dans l'ordre exact
+                        container.querySelectorAll('[data-board-id]').forEach((card, index) => {
+                            orderedBoards.push({
+                                id: card.dataset.boardId,
+                                category_id: categoryId, // On envoie l'ID à Laravel
+                                position: index + 1    // 1, 2, 3...
+                            });
+                        });
+                    });
+
+                    // Envoi au serveur
+                    fetch('/boards/update-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ boards: orderedBoards })
+                    });
                 }
             });
         });
