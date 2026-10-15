@@ -103,7 +103,7 @@
                         <form class="flex items-center px-4 py-3" method="post" action="{{ route('completed_task', ['task' => $task->id])}}">
                             @csrf
                             @method('PATCH')
-                            <input type="checkbox" name="is_completed" id="is_completed" class="ui-checkbox" {{ $task->is_completed ? 'checked' : ''}} onchange="this.form.submit()">
+                            <input type="checkbox" name="is_completed" class="ui-checkbox cursor-pointer" {{ $task->is_completed ? 'checked' : ''}}>
                         </form>
 
                         <div class="flex-1 min-w-0 py-3 pr-4">
@@ -147,26 +147,24 @@
     document.addEventListener('DOMContentLoaded', () => {
         const tasksContainer = document.querySelector('.tasks-container');
         
+        // 1. Initialisation de SortableJS pour le Drag & Drop
         if (tasksContainer && typeof Sortable !== 'undefined') {
             new Sortable(tasksContainer, {
                 animation: 150,
                 ghostClass: 'opacity-40',
-                // On empêche le drag si on clique sur un input, bouton, checkbox ou le modal
                 filter: 'input, button, .ui-checkbox, form, .ui-modal-btn',
-                preventOnFilter: false, // Laisse passer les clics normaux sur ces éléments
+                preventOnFilter: false,
 
                 onEnd: function (evt) {
                     let orderedTasks = [];
                     
-                    // On lit tout le DOM de haut en bas pour récupérer le nouvel ordre
                     tasksContainer.querySelectorAll('[data-task-id]').forEach((taskCard, index) => {
                         orderedTasks.push({
                             id: taskCard.dataset.taskId,
-                            position: index + 1 // 1, 2, 3...
+                            position: index + 1
                         });
                     });
 
-                    // On envoie le tout au serveur
                     fetch('/tasks/update-order', {
                         method: 'POST',
                         headers: {
@@ -184,5 +182,52 @@
                 }
             });
         }
+
+        // 2. Gestion de la complétion des tâches en AJAX (sans recharger la page)
+        document.addEventListener('change', function (e) {
+            if (e.target.matches('.tasks-container input[type="checkbox"]')) {
+                const checkbox = e.target;
+                const form = checkbox.closest('form');
+                const taskCard = checkbox.closest('.task-card');
+                const taskTitle = taskCard ? taskCard.querySelector('p') : null; // ou .task-title si tu as mis la classe
+                const isChecked = checkbox.checked;
+
+                // Mise à jour visuelle immédiate
+                if (taskCard) {
+                    if (isChecked) {
+                        taskCard.classList.add('opacity-60');
+                        if (taskTitle) taskTitle.classList.add('line-through', 'ui-muted');
+                    } else {
+                        taskCard.classList.remove('opacity-60');
+                        if (taskTitle) taskTitle.classList.remove('line-through', 'ui-muted');
+                    }
+                }
+
+                // Envoi de la requête AJAX en arrière-plan
+                const formData = new FormData(form);
+                formData.set('is_completed', isChecked ? '1' : '0');
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                }).then(response => {
+                    if (!response.ok) {
+                        // En cas d'erreur serveur, on annule visuellement
+                        checkbox.checked = !isChecked;
+                        if (taskCard) {
+                            taskCard.classList.toggle('opacity-60', !isChecked);
+                            if (taskTitle) {
+                                taskTitle.classList.toggle('line-through', !isChecked);
+                                taskTitle.classList.toggle('ui-muted', !isChecked);
+                            }
+                        }
+                    }
+                });
+            }
+        });
     });
 </script>
