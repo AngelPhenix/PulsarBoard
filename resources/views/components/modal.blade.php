@@ -9,7 +9,7 @@
     </button>
 
     <!-- Modal background -->
-    <div x-show="open" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4">
+    <div x-show="open" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center p-4">
         <!-- Modal content -->
         <div @click.away="open = false" class="ui-card ui-glow w-full max-w-md p-5">
             <div class="flex items-start justify-between gap-3">
