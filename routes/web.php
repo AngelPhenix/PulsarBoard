@@ -16,6 +16,7 @@ Route::post('/post_task/{board}', [TaskController::class, 'store'])->middleware(
 Route::delete('/delete_task/{task}', [TaskController::class, 'destroy'])->middleware('auth');
 Route::patch('/task_completed/{task}', [TaskController::class, 'update'])->middleware('auth')->name('completed_task');
 Route::get('/board/{board}', [TaskController::class, 'show'])->middleware(['auth', 'can:view,board'])->name('board.show');
+Route::post('/tasks/update-order', [TaskController::class, 'updateOrder'])->middleware(['auth'])->name('tasks.update-order');
 
 Route::get('/', [BoardController::class, 'welcome']);
 Route::get('/boards', [BoardController::class, 'index'])->middleware('auth')->name('board.view');

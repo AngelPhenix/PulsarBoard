@@ -12,7 +12,7 @@ class TaskController extends Controller
 {
     public function show(Board $board)
     {
-        $tasks = $board->tasks->sortBy('is_completed');
+        $tasks = $board->tasks()->orderBy('position', 'asc')->get();
 
         $labels = Auth::user()->labels;
 
@@ -61,6 +61,20 @@ class TaskController extends Controller
         // Auth::user()->tasks()->create($attributes);
 
         return redirect('/board/' . $board->id);
+    }
+
+    public function updateOrder(Request $request)
+    {
+        $tasksData = $request->input('tasks', []);
+
+        foreach ($tasksData as $taskData) {
+            // Met à jour la position de chaque tâche de manière séquentielle
+            Task::where('id', $taskData['id'])->update([
+                'position' => $taskData['position']
+            ]);
+        }
+
+        return response()->json(['success' => true]);
     }
 
     public function destroy(Task $task)

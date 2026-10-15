@@ -95,9 +95,11 @@
                 </div>
             </div>
 
-            <ul class="divide-y divide-white/5">
+            <!-- Ajout de la classe tasks-container -->
+            <ul class="tasks-container divide-y divide-white/5">
                 @foreach ($tasks as $task)
-                    <li class="group flex items-center gap-0 hover:bg-white/3 transition-colors {{ $task->is_completed ? 'opacity-60' : '' }}">
+                    <!-- Ajout de data-task-id et des classes pour le drag & drop -->
+                    <li class="task-card group flex items-center gap-0 hover:bg-white/3 transition-colors cursor-grab active:cursor-grabbing {{ $task->is_completed ? 'opacity-60' : '' }}" data-task-id="{{ $task->id }}">
                         <form class="flex items-center px-4 py-3" method="post" action="{{ route('completed_task', ['task' => $task->id])}}">
                             @csrf
                             @method('PATCH')
@@ -140,3 +142,47 @@
     </div>
 
 </x-layout>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tasksContainer = document.querySelector('.tasks-container');
+        
+        if (tasksContainer && typeof Sortable !== 'undefined') {
+            new Sortable(tasksContainer, {
+                animation: 150,
+                ghostClass: 'opacity-40',
+                // On empêche le drag si on clique sur un input, bouton, checkbox ou le modal
+                filter: 'input, button, .ui-checkbox, form, .ui-modal-btn',
+                preventOnFilter: false, // Laisse passer les clics normaux sur ces éléments
+
+                onEnd: function (evt) {
+                    let orderedTasks = [];
+                    
+                    // On lit tout le DOM de haut en bas pour récupérer le nouvel ordre
+                    tasksContainer.querySelectorAll('[data-task-id]').forEach((taskCard, index) => {
+                        orderedTasks.push({
+                            id: taskCard.dataset.taskId,
+                            position: index + 1 // 1, 2, 3...
+                        });
+                    });
+
+                    // On envoie le tout au serveur
+                    fetch('/tasks/update-order', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ tasks: orderedTasks })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            console.error('Erreur lors de la mise à jour de l\'ordre');
+                        }
+                    });
+                }
+            });
+        }
+    });
+</script>
